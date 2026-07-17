@@ -22,37 +22,44 @@ public class NodeTest {
         assertEquals(Status.SUCCESS, new Sequence(new Belief(OK), new Belief(OK)).tick());
         assertEquals(2, OK.invoked);
         assertEquals(0, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(OK), new Belief(NK)).tick());
-        assertEquals(2+1, OK.invoked);
-        assertEquals(0+1, NK.invoked);
-
+        assertEquals(1, OK.invoked);
+        assertEquals(1, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(NK), new Belief(OK)).tick());
-        assertEquals(2+1+0, OK.invoked);
-        assertEquals(0+1+1, NK.invoked);
+        assertEquals(0, OK.invoked);
+        assertEquals(1, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(NK), new Belief(NK)).tick());
-        assertEquals(2+1+0+0, OK.invoked);
-        assertEquals(0+1+1+1, NK.invoked);
+        assertEquals(0, OK.invoked);
+        assertEquals(1, NK.invoked);
+        OK.invoked = NK.invoked = 0;
     }
     @Test
     public void shouldShortCircuitLikeLogicalOr() {
         assertEquals(Status.SUCCESS, new Fallback(new Belief(OK), new Belief(OK)).tick());
         assertEquals(1, OK.invoked);
         assertEquals(0, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.SUCCESS, new Fallback(new Belief(OK), new Belief(NK)).tick());
-        assertEquals(1+1, OK.invoked);
-        assertEquals(0+0, NK.invoked);
+        assertEquals(1, OK.invoked);
+        assertEquals(0, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.SUCCESS, new Fallback(new Belief(NK), new Belief(OK)).tick());
-        assertEquals(1+1+1, OK.invoked);
-        assertEquals(0+0+1, NK.invoked);
+        assertEquals(1, OK.invoked);
+        assertEquals(1, NK.invoked);
+        OK.invoked = NK.invoked = 0;
 
         assertEquals(Status.FAILURE, new Fallback(new Belief(NK), new Belief(NK)).tick());
-        assertEquals(1+1+1+0, OK.invoked);
-        assertEquals(0+0+1+2, NK.invoked);
+        assertEquals(0, OK.invoked);
+        assertEquals(2, NK.invoked);
+        OK.invoked = NK.invoked = 0;
     }
 
     static class VerifiableCondition implements Supplier<Verification> {
