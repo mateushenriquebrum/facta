@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import static com.facta.Node.Status.*;
 
-public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, Node.Sequence {
+public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, Node.Inverse, Node.Sequence {
     enum Status {
         SUCCESS, FAILURE, RUNNING;
     }
@@ -60,7 +60,24 @@ public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, N
     record Inverse(Belief belief) implements Node {
         @Override
         public Status tick() {
-            return belief.tick() == SUCCESS ? Status.FAILURE : Status.SUCCESS;
+            try {
+                return belief.tick() == SUCCESS ? FAILURE : SUCCESS;
+            } catch (Exception e) {
+                // Good messages here about intentions
+              return FAILURE;
+            }
+        }
+    }
+
+    record Action(Supplier<Status> perform) implements Node {
+        @Override
+        public Status tick() {
+            try {
+                return perform.get();
+            } catch (Exception ex) {
+                // Good messages here about intentions
+                return FAILURE;
+            }
         }
     }
 }
