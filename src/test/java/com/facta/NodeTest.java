@@ -41,12 +41,15 @@ public class NodeTest {
         assertEquals(Status.SUCCESS, new Fallback(new Belief(OK), new Belief(OK)).tick());
         assertEquals(1, OK.invoked);
         assertEquals(0, NK.invoked);
+
         assertEquals(Status.SUCCESS, new Fallback(new Belief(OK), new Belief(NK)).tick());
         assertEquals(1+1, OK.invoked);
         assertEquals(0+0, NK.invoked);
+
         assertEquals(Status.SUCCESS, new Fallback(new Belief(NK), new Belief(OK)).tick());
         assertEquals(1+1+1, OK.invoked);
         assertEquals(0+0+1, NK.invoked);
+
         assertEquals(Status.FAILURE, new Fallback(new Belief(NK), new Belief(NK)).tick());
         assertEquals(1+1+1+0, OK.invoked);
         assertEquals(0+0+1+2, NK.invoked);
