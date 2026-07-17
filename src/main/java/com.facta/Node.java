@@ -16,7 +16,7 @@ public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, N
 
     Status tick();
 
-    record Sequence(Node ... children) implements Node {
+    record Sequence(Node... children) implements Node {
         @Override
         public Status tick() {
             for (Node node : children) {
@@ -33,7 +33,7 @@ public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, N
         }
     }
 
-    record Fallback(Node ... children) implements Node {
+    record Fallback(Node... children) implements Node {
         @Override
         public Status tick() {
             for (Node node : children) {
@@ -58,7 +58,6 @@ public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, N
     }
 
     record Inverse(Belief belief) implements Node {
-
         @Override
         public Status tick() {
             return belief.tick() == SUCCESS ? Status.FAILURE : Status.SUCCESS;
