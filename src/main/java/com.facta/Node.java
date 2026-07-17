@@ -53,19 +53,20 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
     record Belief(Supplier<Verification> condition) implements Node {
         @Override
         public Status tick() {
-            return condition.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
+            try {
+                return condition.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
+            }
+            catch (Exception e) {
+                // Good messages here about intentions
+                return FAILURE;
+            }
         }
     }
 
     record Inverse(Belief belief) implements Node {
         @Override
         public Status tick() {
-            try {
-                return belief.tick() == SUCCESS ? FAILURE : SUCCESS;
-            } catch (Exception e) {
-                // Good messages here about intentions
-              return FAILURE;
-            }
+            return belief.tick() == SUCCESS ? FAILURE : SUCCESS;
         }
     }
 

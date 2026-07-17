@@ -123,6 +123,17 @@ public class NodeTest {
         ANK.invoked = AOK.invoked = ARN.invoked = 0;
     }
 
+    @Test
+    void shouldActionAndBeliefBePanicSafe() {
+        assertEquals(Status.FAILURE, new Action(() -> {
+            throw new RuntimeException();
+        }).tick());
+
+        assertEquals(Status.FAILURE, new Belief(() -> {
+            throw new RuntimeException();
+        }).tick());
+    }
+
     static class VerifiableCondition implements Supplier<Verification> {
         public int invoked = 0;
         private final Verification result;
