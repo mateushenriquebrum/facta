@@ -7,11 +7,11 @@ import static com.facta.Node.Status.*;
 
 public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, Node.Inverse, Node.Sequence {
     enum Status {
-        SUCCESS, FAILURE, RUNNING;
+        SUCCESS, FAILURE, RUNNING
     }
 
     enum Verification {
-        SUCCESS, FAILURE;
+        SUCCESS, FAILURE
     }
 
     Status tick();
