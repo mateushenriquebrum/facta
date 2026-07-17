@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NodeTest {
 
-    Verifiable OK = new Verifiable(() -> Verification.SUCCESS);
-    Verifiable NK = new Verifiable(() -> Verification.FAILURE);
+    VerifiableCondition OK = new VerifiableCondition(Verification.SUCCESS);
+    VerifiableCondition NK = new VerifiableCondition(Verification.FAILURE);
 
     @Test
     public void shouldInvertBelief() {
@@ -52,18 +52,18 @@ public class NodeTest {
         assertEquals(0+0+1+2, NK.invoked);
     }
 
-    static class Verifiable implements Supplier<Verification> {
-
-        private final Supplier<Verification> action;
+    static class VerifiableCondition implements Supplier<Verification> {
         public int invoked = 0;
+        private final Verification result;
 
-        public Verifiable(Supplier<Verification> action) {
-            this.action = action;
+        public VerifiableCondition(Verification result) {
+            this.result = result;
         }
+
         @Override
         public Verification get() {
             invoked++;
-            return action.get();
+            return result;
         }
     }
 }

@@ -50,10 +50,10 @@ public sealed interface Node permits Node.Belief, Node.Fallback, Node.Inverse, N
         }
     }
 
-    record Belief(Supplier<Verification> action) implements Node {
+    record Belief(Supplier<Verification> condition) implements Node {
         @Override
         public Status tick() {
-            return action.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
+            return condition.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
         }
     }
 
