@@ -9,6 +9,7 @@ public class ActionExecutor<T> {
     private final T board;
     private final BlockingQueue<Consumer<T>> queue = new ArrayBlockingQueue<>(1);
     private final Thread watcher;
+    private String status;
 
     public ActionExecutor(T board) {
         this.board = board;
@@ -28,6 +29,7 @@ public class ActionExecutor<T> {
 
     public void next(Consumer<T> execute) {
         if(execute != null){
+            status = "RUNNING";
             queue.offer(execute);
         }
     }
@@ -38,13 +40,19 @@ public class ActionExecutor<T> {
                 Consumer<T> local = queue.take();
                 try{
                     local.accept(board);
+                    status = "SUCCESS";
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    //
+                    status = "FAIL";
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public String status() {
+        String temp = status;
+        status = null;
+        return temp;
     }
 }
