@@ -1,27 +1,29 @@
 package com.facta;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 public class ActionExecutor<T> {
 
     private final T board;
-    private final ExecutorService executor;
-    private final BlockingQueue<Consumer<T>> queue = new LinkedBlockingQueue<>(1);
+    private final BlockingQueue<Consumer<T>> queue = new ArrayBlockingQueue<>(1);
+    private final Thread watcher;
 
-    public ActionExecutor(T board, ExecutorService executor) {
+    public ActionExecutor(T board) {
         this.board = board;
-        this.executor = executor;
+        this.watcher = Thread
+                .ofVirtual()
+                .name("queue_watcher")
+                .unstarted(this::processQueue);
     }
 
     public void start(){
-        executor.submit(this::watchLoop);
+        this.watcher.start();
     }
 
     public void stop(){
-        Thread.currentThread().interrupt();
+        this.watcher.interrupt();
     }
 
     public void next(Consumer<T> execute) {
@@ -30,7 +32,7 @@ public class ActionExecutor<T> {
         }
     }
 
-    private void watchLoop() {
+    private void processQueue() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 Consumer<T> local = queue.take();
