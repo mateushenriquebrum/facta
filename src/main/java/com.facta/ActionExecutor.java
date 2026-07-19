@@ -8,14 +8,12 @@ import java.util.function.Consumer;
 public class ActionExecutor<T> {
 
     private final T board;
-    private final CountDownLatch latch;
     private final ExecutorService executor;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private volatile Consumer<T> next = null;
 
-    public ActionExecutor(T board, ExecutorService executor, CountDownLatch latch) {
+    public ActionExecutor(T board, ExecutorService executor) {
         this.board = board;
-        this.latch = latch;
         this.executor = executor;
     }
 
@@ -50,7 +48,6 @@ public class ActionExecutor<T> {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            latch.countDown();
         }
     }
 }
