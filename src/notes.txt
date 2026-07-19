@@ -1,3 +1,26 @@
 Add change matrix with status
 Add execution queue for actions
 Generate tree from root and state as output stream
+
+Idea:
+Executor.queue
+Create a list of queues on the fly and every time something fail it goes to the lower priority queue
+int levels = 3;
+Queue<Consumer<Blackboard>>[] queues = new Queue[levels]();
+for(int current = 0; current < levels; current++) {
+    queues[current] = new LinkedList<>();
+}
+
+private void tryExecuteNext(Queue[] levels) {
+        Consumer<Blackboard> consume = level[1].pool();
+        if(consume != null) {
+            try {
+                consume.accept(blackboard);
+            } catch (){
+                /// send somehow to next level
+                level.peek()
+            } finally{
+                level.peek()
+            }
+        }
+    }
