@@ -27,14 +27,14 @@ public class ActionExecutor<T> {
         }
     }
 
-    public void next(Consumer<T> execute) throws InterruptedException {
-        LOG.info("Execute received {}", execute);
-        if(execute == null) {
+    public void next(Consumer<T> action) throws InterruptedException {
+        LOG.info("Execute received {}", action);
+        if(action == null) {
             LOG.warn("Execute must not be null, returning from next");
             return;
         }
         startWorkerIfNeeded();
-        exchange.put(execute);
+        exchange.put(action);
     }
 
     private void processQueue() {

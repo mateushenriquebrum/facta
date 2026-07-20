@@ -23,13 +23,13 @@ public class ActionExecutorTest {
     }
 
     @Test
-    public void testNullExecution() throws InterruptedException {
+    public void testNullAction() throws InterruptedException {
         action.next(null);
         assertNull(action.status());
     }
 
     @Test
-    public void testNextIsConsumedCorrectly() throws InterruptedException {
+    public void testNextQuickOffActionCorrectly() throws InterruptedException {
         CountDownLatch count = new CountDownLatch(1);
         action.next((b) -> {
             b.count++;
@@ -40,7 +40,7 @@ public class ActionExecutorTest {
     }
 
     @Test
-    public void testExecuteSynchronous() throws InterruptedException {
+    public void testActionRunsSynchronous() throws InterruptedException {
         CountDownLatch count = new CountDownLatch(10);
         for(int a = 0; a < 10; a++){
             action.next((b) -> {
@@ -53,7 +53,7 @@ public class ActionExecutorTest {
     }
 
     @Test
-    public void testRunningStatus() throws InterruptedException {
+    public void testActionResultsInRunningStatus() throws InterruptedException {
         action.next((b) -> sleep(2000));
         Thread.sleep(500);
         action.stop();
@@ -61,14 +61,14 @@ public class ActionExecutorTest {
     }
 
     @Test
-    public void testSuccessStatus() throws InterruptedException {
+    public void testActionResultsInSuccessStatus() throws InterruptedException {
         action.next((b) -> sleep(100));
         sleep(500);
         assertEquals("SUCCESS", action.status());
     }
 
     @Test
-    public void testSuccessFail() throws InterruptedException {
+    public void testActionResultsInFailStatus() throws InterruptedException {
         action.next((b) -> {
             throw new RuntimeException("SOMETHING WHEN WRONG");
         });
@@ -77,7 +77,7 @@ public class ActionExecutorTest {
     }
 
     @Test
-    public void testCleanStatus() throws InterruptedException {
+    public void testCleanStatusAfterReading() throws InterruptedException {
         assertNull(action.status());
         action.next((b) -> {
             throw  new RuntimeException("SOMETHING WHEN WRONG");
