@@ -23,6 +23,12 @@ public class ActionExecutorTest {
     }
 
     @Test
+    public void testNullExecution() throws InterruptedException {
+        action.next(null);
+        assertNull(action.status());
+    }
+
+    @Test
     public void testNextIsConsumedCorrectly() throws InterruptedException {
         CountDownLatch count = new CountDownLatch(1);
         action.next((b) -> {
