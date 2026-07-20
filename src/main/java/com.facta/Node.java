@@ -1,12 +1,11 @@
 package com.facta;
 
 
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static com.facta.Node.Status.*;
 
-public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, Node.Inverse, Node.Memoizer, Node.Sequence {
+public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, Node.Inverse, Node.Sequence {
     enum Status {
         SUCCESS, FAILURE, RUNNING
     }
@@ -68,26 +67,6 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
         @Override
         public Status tick(Context context) {
             return belief.tick(context) == SUCCESS ? FAILURE : SUCCESS;
-        }
-    }
-
-    record Memoizer(Node child, AtomicReference<Status> cache) implements Node {
-
-        public Memoizer(Node child) {
-            this(child, new AtomicReference<>(null));
-        }
-
-        @Override
-        public Status tick(Context context) {
-            Status cached = cache.get();
-            if (cached != null) {
-                return cached;
-            }
-            Status result = child.tick(context);
-            if(result != RUNNING) {
-                cache.set(result);
-            }
-            return result;
         }
     }
 

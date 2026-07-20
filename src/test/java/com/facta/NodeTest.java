@@ -160,7 +160,7 @@ public class NodeTest {
 
     @Test
     void shouldCacheActionResult() {
-        Node root = new Sequence(new Memoizer(new Action(A_RN_NK)));
+        Node root = new Sequence(new Action(A_RN_NK));
         assertEquals(Status.RUNNING, root.tick(context));
         assertEquals(Status.FAILURE, root.tick(context));
         assertEquals(Status.FAILURE, root.tick(context));
@@ -171,13 +171,22 @@ public class NodeTest {
     @Test
     void shouldCleanUpFallbackBranchNotBeingActive() {
         Node fallback = new Fallback(
-                new Memoizer(new Action(A_RN_NK)),
-                new Memoizer(new Action(A_OK)));
+                new Action(A_RN_NK),
+                new Action(A_OK));
+        context.prepareCollectActive();
         assertEquals(Status.RUNNING, fallback.tick(context));
+        context.removeInactive();
+        context.prepareCollectActive();
         assertEquals(Status.SUCCESS, fallback.tick(context));
+        context.removeInactive();
+        context.prepareCollectActive();
         // tick make A_RN_NK evaluate again
         assertEquals(Status.RUNNING, fallback.tick(context));
+        context.removeInactive();
+        context.prepareCollectActive();
         assertEquals(Status.SUCCESS, fallback.tick(context));
+        context.removeInactive();
+        context.prepareCollectActive();
 
         Assertions.assertEquals(4, A_RN_NK.invoked);
         Assertions.assertEquals(2, A_OK.invoked);
@@ -186,8 +195,8 @@ public class NodeTest {
     @Test
     void shouldCleanUpSequenceBranchNotBeingActive() {
         Node sequence = new Sequence(
-                new Memoizer(new Action(A_RN_NK)),
-                new Memoizer(new Action(A_OK)));
+                new Action(A_RN_NK),
+                new Action(A_OK));
         assertEquals(Status.RUNNING, sequence.tick(context));
         assertEquals(Status.FAILURE, sequence.tick(context));
         assertEquals(Status.FAILURE, sequence.tick(context));
