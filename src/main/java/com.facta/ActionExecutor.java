@@ -17,28 +17,23 @@ public class ActionExecutor<T> {
 
     public ActionExecutor(T board) {
         this.board = board;
-       LOG.info("queue_watcher registered");
     }
 
     public void stop(){
         Thread current = this.watcher.get();
-        if (current != null && !current.isAlive()) {
-            LOG.debug("Interrupting active queue_watcher thread");
+        if (current != null && current.isAlive()) {
+            LOG.debug("Stopping active queue_watcher thread");
             current.interrupt();
         }
     }
 
     public void next(Consumer<T> execute) throws InterruptedException {
-        LOG.info("execute received {}", execute);
+        LOG.info("Execute received {}", execute);
         if(execute == null) {
-            LOG.warn("execute must not be null, returning from next");
+            LOG.warn("Execute must not be null, returning from next");
             return;
         }
-        Thread current = this.watcher.get();
-        if (current == null || !current.isAlive()) {
-            LOG.debug("Interrupting active queue_watcher thread");
-            start();
-        }
+        startWorkerIfNeeded();
         exchange.put(execute);
     }
 
@@ -47,29 +42,29 @@ public class ActionExecutor<T> {
             try {
                 Consumer<T> local = exchange.take();
                 try{
-                    LOG.info("got a function to execute {}, setting status to RUNNING", local);
+                    LOG.info("Got a function to execute {}, setting status to RUNNING", local);
                     status.set("RUNNING");
                     local.accept(board);
-                    LOG.info("finished the function {}, setting status to SUCCESS", local);
+                    LOG.info("Finished the function {}, setting status to SUCCESS", local);
                     status.set("SUCCESS");
                 } catch (Exception e) {
-                    LOG.debug("failed due exception", e);
-                    LOG.info("function failed {}, setting status to FAIL", local);
+                    LOG.debug("Failed due exception", e);
+                    LOG.info("Function failed {}, setting status to FAIL", local);
                     status.set("FAIL");
                 }
             }catch (InterruptedException e) {
-                LOG.debug("interrupted due exception, if it is production it should not be caused by stop", e);
+                LOG.debug("Interrupted due exception, if it is production it should not be caused by stop", e);
                 Thread.currentThread().interrupt();
             }
         }
     }
 
     public String status() {
-        LOG.info("getting status from queue_watcher");
+        LOG.info("Getting status from queue_watcher");
         return  status.getAndSet(null);
     }
 
-    private synchronized void start() {
+    private synchronized void startWorkerIfNeeded() {
         Thread current = watcher.get();
         if(current == null || !current.isAlive()) {
             Thread newly = Thread
