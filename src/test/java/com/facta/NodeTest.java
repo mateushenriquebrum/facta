@@ -167,18 +167,32 @@ public class NodeTest {
     }
 
     @Test
-    void shouldCleanUpBranchNotBeingActive() {
-        Node root = new Fallback(
+    void shouldCleanUpFallbackBranchNotBeingActive() {
+        Node fallback = new Fallback(
                 new Memoizer(new Action(A_RN_NK)),
                 new Memoizer(new Action(A_OK)));
-        assertEquals(Status.RUNNING, root.tick());
-        assertEquals(Status.SUCCESS, root.tick());
+        assertEquals(Status.RUNNING, fallback.tick());
+        assertEquals(Status.SUCCESS, fallback.tick());
         // tick make A_RN_NK evaluate again
-        assertEquals(Status.RUNNING, root.tick());
-        assertEquals(Status.SUCCESS, root.tick());
+        assertEquals(Status.RUNNING, fallback.tick());
+        assertEquals(Status.SUCCESS, fallback.tick());
+
         Assertions.assertEquals(4, A_RN_NK.invoked);
         Assertions.assertEquals(2, A_OK.invoked);
+    }
 
+    @Test
+    void shouldCleanUpSequenceBranchNotBeingActive() {
+        Node sequence = new Sequence(
+                new Memoizer(new Action(A_RN_NK)),
+                new Memoizer(new Action(A_OK)));
+        assertEquals(Status.RUNNING, sequence.tick());
+        assertEquals(Status.FAILURE, sequence.tick());
+        assertEquals(Status.FAILURE, sequence.tick());
+        assertEquals(Status.FAILURE, sequence.tick());
+
+        Assertions.assertEquals(2, A_RN_NK.invoked);
+        Assertions.assertEquals(0, A_OK.invoked);
     }
 
     static class VerifiableCondition implements Supplier<Verification> {
