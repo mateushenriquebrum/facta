@@ -57,7 +57,7 @@ public class Actioner<T> {
                 } catch (Exception e) {
                     LOG.debug("Failed due exception", e);
                     LOG.info("Function failed {}, setting status to FAIL", local);
-                    status.set("FAIL");
+                    status.set("FAILURE");
                 }
             }catch (InterruptedException e) {
                 LOG.debug("Interrupted due exception, if it is production it should not be caused by stop", e);
@@ -78,7 +78,7 @@ public class Actioner<T> {
                     .ofVirtual()
                     .uncaughtExceptionHandler((t, e) -> {
                         LOG.error("Something went wrong with queue_watcher, it will start again (self-healing)", e);
-                        status.set("FAIL");
+                        status.set("FAILURE");
                         this.watcher.set(null);
                     })
                     .name("queue_watcher")

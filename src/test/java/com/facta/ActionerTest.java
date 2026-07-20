@@ -73,7 +73,7 @@ public class ActionerTest {
             throw new RuntimeException("SOMETHING WHEN WRONG");
         });
         sleep(500);
-        assertEquals("FAIL", action.status());
+        assertEquals("FAILURE", action.status());
     }
 
     @Test
@@ -83,7 +83,7 @@ public class ActionerTest {
             throw  new RuntimeException("SOMETHING WHEN WRONG");
         });
         sleep(500);
-        assertEquals("FAIL", action.status());
+        assertEquals("FAILURE", action.status());
         assertNull(action.status());
     }
 
@@ -93,7 +93,7 @@ public class ActionerTest {
             throw new OutOfMemoryError();
         });
         sleep(500);
-        assertEquals("FAIL", action.status());
+        assertEquals("FAILURE", action.status());
         action.next((board) -> {});
         sleep(500);
         assertEquals("SUCCESS", action.status());
