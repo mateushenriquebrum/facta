@@ -9,118 +9,119 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NodeTest {
 
-    VerifiableCondition BOK = new VerifiableCondition(Verification.SUCCESS);
-    VerifiableCondition BNK = new VerifiableCondition(Verification.FAILURE);
-    VerifiableAction    AOK = new VerifiableAction(Status.SUCCESS);
-    VerifiableAction    ANK = new VerifiableAction(Status.FAILURE);
-    VerifiableAction    ARN = new VerifiableAction(Status.RUNNING);
+    VerifiableCondition B_OK = new VerifiableCondition(Verification.SUCCESS);
+    VerifiableCondition B_NK = new VerifiableCondition(Verification.FAILURE);
+    VerifiableAction    A_OK = new VerifiableAction(Status.SUCCESS);
+    VerifiableAction    A_NK = new VerifiableAction(Status.FAILURE);
+    VerifiableAction    A_RN = new VerifiableAction(Status.RUNNING);
+    VerifiableAction    A_RN_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE);
 
     @Test
     public void shouldInvertBelief() {
-        assertEquals(Status.FAILURE, new Inverse(new Belief(BOK)).tick());
-        assertEquals(Status.SUCCESS, new Inverse(new Belief(BNK)).tick());
+        assertEquals(Status.FAILURE, new Inverse(new Belief(B_OK)).tick());
+        assertEquals(Status.SUCCESS, new Inverse(new Belief(B_NK)).tick());
     }
     @Test
     public void shouldBeliefShortCircuitLikeLogicalAnd() {
-        assertEquals(Status.SUCCESS, new Sequence(new Belief(BOK), new Belief(BOK)).tick());
-        assertEquals(2, BOK.invoked);
-        assertEquals(0, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.SUCCESS, new Sequence(new Belief(B_OK), new Belief(B_OK)).tick());
+        assertEquals(2, B_OK.invoked);
+        assertEquals(0, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Belief(BOK), new Belief(BNK)).tick());
-        assertEquals(1, BOK.invoked);
-        assertEquals(1, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.FAILURE, new Sequence(new Belief(B_OK), new Belief(B_NK)).tick());
+        assertEquals(1, B_OK.invoked);
+        assertEquals(1, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Belief(BNK), new Belief(BOK)).tick());
-        assertEquals(0, BOK.invoked);
-        assertEquals(1, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.FAILURE, new Sequence(new Belief(B_NK), new Belief(B_OK)).tick());
+        assertEquals(0, B_OK.invoked);
+        assertEquals(1, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Belief(BNK), new Belief(BNK)).tick());
-        assertEquals(0, BOK.invoked);
-        assertEquals(1, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.FAILURE, new Sequence(new Belief(B_NK), new Belief(B_NK)).tick());
+        assertEquals(0, B_OK.invoked);
+        assertEquals(1, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
     }
     @Test
     public void shouldBeliefShortCircuitLikeLogicalOr() {
-        assertEquals(Status.SUCCESS, new Fallback(new Belief(BOK), new Belief(BOK)).tick());
-        assertEquals(1, BOK.invoked);
-        assertEquals(0, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.SUCCESS, new Fallback(new Belief(B_OK), new Belief(B_OK)).tick());
+        assertEquals(1, B_OK.invoked);
+        assertEquals(0, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.SUCCESS, new Fallback(new Belief(BOK), new Belief(BNK)).tick());
-        assertEquals(1, BOK.invoked);
-        assertEquals(0, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.SUCCESS, new Fallback(new Belief(B_OK), new Belief(B_NK)).tick());
+        assertEquals(1, B_OK.invoked);
+        assertEquals(0, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.SUCCESS, new Fallback(new Belief(BNK), new Belief(BOK)).tick());
-        assertEquals(1, BOK.invoked);
-        assertEquals(1, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.SUCCESS, new Fallback(new Belief(B_NK), new Belief(B_OK)).tick());
+        assertEquals(1, B_OK.invoked);
+        assertEquals(1, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Fallback(new Belief(BNK), new Belief(BNK)).tick());
-        assertEquals(0, BOK.invoked);
-        assertEquals(2, BNK.invoked);
-        BOK.invoked = BNK.invoked = 0;
+        assertEquals(Status.FAILURE, new Fallback(new Belief(B_NK), new Belief(B_NK)).tick());
+        assertEquals(0, B_OK.invoked);
+        assertEquals(2, B_NK.invoked);
+        B_OK.invoked = B_NK.invoked = 0;
     }
 
     @Test
     void shouldActionShortCircuitLikeLogicalAnd() {
-        assertEquals(Status.SUCCESS, new Sequence(new Action(AOK), new Action(AOK)).tick());
-        assertEquals(2, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = 0;
+        assertEquals(Status.SUCCESS, new Sequence(new Action(A_OK), new Action(A_OK)).tick());
+        assertEquals(2, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Action(ANK), new Action(AOK)).tick());
-        assertEquals(0, AOK.invoked);
-        assertEquals(1, ANK.invoked);
-        ANK.invoked = AOK.invoked = 0;
+        assertEquals(Status.FAILURE, new Sequence(new Action(A_NK), new Action(A_OK)).tick());
+        assertEquals(0, A_OK.invoked);
+        assertEquals(1, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Action(AOK), new Action(ANK)).tick());
-        assertEquals(1, AOK.invoked);
-        assertEquals(1, ANK.invoked);
-        ANK.invoked = AOK.invoked = 0;
+        assertEquals(Status.FAILURE, new Sequence(new Action(A_OK), new Action(A_NK)).tick());
+        assertEquals(1, A_OK.invoked);
+        assertEquals(1, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = 0;
     }
 
     @Test
     void shouldActionShortCircuitLikeLogicalOr() {
-        assertEquals(Status.RUNNING, new Sequence(new Action(ARN), new Action(AOK)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_OK)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
 
-        assertEquals(Status.RUNNING, new Sequence(new Action(ARN), new Action(ANK)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_NK)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
 
-        assertEquals(Status.RUNNING, new Sequence(new Action(ARN), new Action(ARN)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_RN)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
 
-        assertEquals(Status.RUNNING, new Fallback(new Action(ARN), new Action(AOK)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_OK)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
 
-        assertEquals(Status.RUNNING, new Fallback(new Action(ARN), new Action(ANK)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_NK)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
 
-        assertEquals(Status.RUNNING, new Fallback(new Action(ARN), new Action(ARN)).tick());
-        assertEquals(1, ARN.invoked);
-        assertEquals(0, AOK.invoked);
-        assertEquals(0, ANK.invoked);
-        ANK.invoked = AOK.invoked = ARN.invoked = 0;
+        assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_RN)).tick());
+        assertEquals(1, A_RN.invoked);
+        assertEquals(0, A_OK.invoked);
+        assertEquals(0, A_NK.invoked);
+        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
     }
 
     @Test
@@ -134,34 +135,48 @@ public class NodeTest {
         }).tick());
     }
 
+    @Test
+    void shouldShortCircuitWhenFindRunning() {
+        Node root = new Fallback(new Action(A_RN_NK));
+        assertEquals(Status.RUNNING, root.tick());
+        assertEquals(Status.FAILURE, root.tick());
+    }
+
     static class VerifiableCondition implements Supplier<Verification> {
         public int invoked = 0;
-        private final Verification result;
+        private final Verification[] sequence;
+        int index = 0;
 
-        public VerifiableCondition(Verification result) {
-            this.result = result;
+        public VerifiableCondition(Verification ... result) {
+            this.sequence = result;
         }
 
         @Override
         public Verification get() {
             invoked++;
-            return result;
+            if(index == sequence.length - 1) {
+                return sequence[index];
+            }
+            return sequence[index++];
         }
     }
 
     static class VerifiableAction implements Supplier<Status> {
         public int invoked = 0;
-        private final Status result;
+        private final Status[] sequence;
+        int index = 0;
 
-        public VerifiableAction(Status result) {
-            this.result = result;
+        public VerifiableAction(Status ... result) {
+            this.sequence = result;
         }
 
         @Override
         public Status get() {
             invoked++;
-            return result;
+            if(index == sequence.length - 1) {
+                return sequence[index];
+            }
+            return sequence[index++];
         }
     }
-
 }
