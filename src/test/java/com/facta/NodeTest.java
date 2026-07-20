@@ -1,6 +1,9 @@
 package com.facta;
 
 import com.facta.Node.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
@@ -9,12 +12,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NodeTest {
 
-    VerifiableCondition B_OK = new VerifiableCondition(Verification.SUCCESS);
-    VerifiableCondition B_NK = new VerifiableCondition(Verification.FAILURE);
-    VerifiableAction    A_OK = new VerifiableAction(Status.SUCCESS);
-    VerifiableAction    A_NK = new VerifiableAction(Status.FAILURE);
-    VerifiableAction    A_RN = new VerifiableAction(Status.RUNNING);
-    VerifiableAction    A_RN_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE);
+    VerifiableCondition B_OK;
+    VerifiableCondition B_NK;
+    VerifiableAction    A_OK;
+    VerifiableAction    A_NK;
+    VerifiableAction    A_RN;
+    VerifiableAction    A_RN_NK;
+
+    @BeforeEach
+    public void setUp() {
+        B_OK = new VerifiableCondition(Verification.SUCCESS);
+        B_NK = new VerifiableCondition(Verification.FAILURE);
+        A_OK = new VerifiableAction(Status.SUCCESS);
+        A_NK = new VerifiableAction(Status.FAILURE);
+        A_RN = new VerifiableAction(Status.RUNNING);
+        A_RN_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE);
+    }
 
     @Test
     public void shouldInvertBelief() {
@@ -140,6 +153,32 @@ public class NodeTest {
         Node root = new Fallback(new Action(A_RN_NK));
         assertEquals(Status.RUNNING, root.tick());
         assertEquals(Status.FAILURE, root.tick());
+    }
+
+
+    @Test
+    void shouldCacheActionResult() {
+        Node root = new Sequence(new Memoizer(new Action(A_RN_NK)));
+        assertEquals(Status.RUNNING, root.tick());
+        assertEquals(Status.FAILURE, root.tick());
+        assertEquals(Status.FAILURE, root.tick());
+        assertEquals(Status.FAILURE, root.tick());
+        Assertions.assertEquals(2, A_RN_NK.invoked);
+    }
+
+    @Test
+    void shouldCleanUpBranchNotBeingActive() {
+        Node root = new Fallback(
+                new Memoizer(new Action(A_RN_NK)),
+                new Memoizer(new Action(A_OK)));
+        assertEquals(Status.RUNNING, root.tick());
+        assertEquals(Status.SUCCESS, root.tick());
+        // tick make A_RN_NK evaluate again
+        assertEquals(Status.RUNNING, root.tick());
+        assertEquals(Status.SUCCESS, root.tick());
+        Assertions.assertEquals(4, A_RN_NK.invoked);
+        Assertions.assertEquals(2, A_OK.invoked);
+
     }
 
     static class VerifiableCondition implements Supplier<Verification> {
