@@ -15,13 +15,13 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
         SUCCESS, FAILURE
     }
 
-    Status tick();
+    Status tick(Context context);
 
     record Sequence(Node... children) implements Node {
         @Override
-        public Status tick() {
+        public Status tick(Context context) {
             for (Node node : children) {
-                Status status = node.tick();
+                Status status = node.tick(context);
                 switch (status) {
                     case FAILURE, RUNNING -> {
                         return status;
@@ -36,9 +36,9 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     record Fallback(Node... children) implements Node {
         @Override
-        public Status tick() {
+        public Status tick(Context context) {
             for (Node node : children) {
-                Status status = node.tick();
+                Status status = node.tick(context);
                 switch (status) {
                     case SUCCESS, RUNNING -> {
                         return status;
@@ -53,7 +53,7 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     record Belief(Supplier<Verification> condition) implements Node {
         @Override
-        public Status tick() {
+        public Status tick(Context context) {
             try {
                 return condition.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
             }
@@ -66,8 +66,8 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     record Inverse(Belief belief) implements Node {
         @Override
-        public Status tick() {
-            return belief.tick() == SUCCESS ? FAILURE : SUCCESS;
+        public Status tick(Context context) {
+            return belief.tick(context) == SUCCESS ? FAILURE : SUCCESS;
         }
     }
 
@@ -78,12 +78,12 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
         }
 
         @Override
-        public Status tick() {
+        public Status tick(Context context) {
             Status cached = cache.get();
             if (cached != null) {
                 return cached;
             }
-            Status result = child.tick();
+            Status result = child.tick(context);
             if(result != RUNNING) {
                 cache.set(result);
             }
@@ -93,7 +93,7 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     record Action(Supplier<Status> perform) implements Node {
         @Override
-        public Status tick() {
+        public Status tick(Context context) {
             try {
                 return perform.get();
             } catch (Exception ex) {
