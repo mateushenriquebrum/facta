@@ -7,19 +7,19 @@ import java.util.concurrent.CountDownLatch;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ActionExecutorTest {
+public class ActionerTest {
 
     static class AnyBoard {
         int count = 0;
     }
 
-    private ActionExecutor<AnyBoard> action;
+    private Actioner<AnyBoard> action;
     private AnyBoard board;
 
     @BeforeEach
     public void setup() {
         board = new AnyBoard();
-        action = new ActionExecutor<>(board);
+        action = new Actioner<>(board);
     }
 
     @Test

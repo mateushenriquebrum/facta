@@ -5,17 +5,19 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public class ActionExecutor<T> {
+public class Actioner<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ActionExecutor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Actioner.class);
     private final T board;
     private final SynchronousQueue<Consumer<T>> exchange  = new SynchronousQueue<>();
     private final AtomicReference<String> status = new AtomicReference<>(null);
     private final AtomicReference<Thread> watcher = new AtomicReference<>(null);
+    private final ReentrantLock lock = new ReentrantLock();
 
-    public ActionExecutor(T board) {
+    public Actioner(T board) {
         this.board = board;
     }
 
@@ -33,7 +35,12 @@ public class ActionExecutor<T> {
             LOG.warn("Execute must not be null, returning from next");
             return;
         }
-        startWorkerIfNeeded();
+        lock.lock();
+        try{
+            startWorkerIfNeeded();
+        } finally {
+            lock.unlock();
+        }
         exchange.put(action);
     }
 
@@ -64,7 +71,7 @@ public class ActionExecutor<T> {
         return  status.getAndSet(null);
     }
 
-    private synchronized void startWorkerIfNeeded() {
+    private void startWorkerIfNeeded() {
         Thread current = watcher.get();
         if(current == null || !current.isAlive()) {
             Thread newly = Thread
