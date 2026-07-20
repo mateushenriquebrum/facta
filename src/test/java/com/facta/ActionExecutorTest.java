@@ -3,7 +3,6 @@ package com.facta;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -23,7 +22,6 @@ public class ActionExecutorTest {
             count.countDown();
         });
         count.await();
-        action.stop();
         assertEquals(1, board.count);
     }
 
@@ -39,7 +37,6 @@ public class ActionExecutorTest {
             });
         }
         count.await();
-        action.stop();
         assertEquals(10, board.count);
     }
 
@@ -59,7 +56,6 @@ public class ActionExecutorTest {
         ActionExecutor<AnyBoard> action = new ActionExecutor<>(board);
         action.next((b) -> sleep(100));
         sleep(500);
-        action.stop();
         assertEquals("SUCCESS", action.status());
     }
 
@@ -71,7 +67,6 @@ public class ActionExecutorTest {
             throw new RuntimeException("SOMETHING WHEN WRONG");
         });
         sleep(500);
-        action.stop();
         assertEquals("FAIL", action.status());
     }
 
@@ -84,9 +79,23 @@ public class ActionExecutorTest {
             throw  new RuntimeException("SOMETHING WHEN WRONG");
         });
         sleep(500);
-        action.stop();
         assertEquals("FAIL", action.status());
         assertNull(action.status());
+    }
+
+    @Test
+    public void testSelfHealingAfterFailingOnOutOfMemory() throws InterruptedException {
+        ActionExecutor<AnyBoard> action = new ActionExecutor<>(null);
+        CountDownLatch count = new CountDownLatch(1);
+
+        action.next((board) -> {
+            throw new OutOfMemoryError();
+        });
+        sleep(500);
+        assertEquals("FAIL", action.status());
+        action.next((board) -> {});
+        sleep(500);
+        assertEquals("SUCCESS", action.status());
     }
 
     private void sleep(int millis) {

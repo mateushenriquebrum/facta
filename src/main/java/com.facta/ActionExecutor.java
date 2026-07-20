@@ -12,25 +12,20 @@ public class ActionExecutor<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ActionExecutor.class);
     private final T board;
     private final SynchronousQueue<Consumer<T>> exchange  = new SynchronousQueue<>();
-    private final Thread watcher;
     private final AtomicReference<String> status = new AtomicReference<>(null);
+    private final AtomicReference<Thread> watcher = new AtomicReference<>(null);
 
     public ActionExecutor(T board) {
         this.board = board;
-        this.watcher = Thread
-                .ofVirtual()
-                .uncaughtExceptionHandler((t, e) -> {
-                    LOG.error("Something went wrong with queue_watcher, it will start again", e);
-                    status.set("FAIL");
-                })
-                .name("queue_watcher")
-                .unstarted(this::processQueue);
-        LOG.info("queue_watcher registered");
+       LOG.info("queue_watcher registered");
     }
 
     public void stop(){
-        LOG.debug("interrupting queue_watcher, shouldn't happen in production environment");
-        this.watcher.interrupt();
+        Thread current = this.watcher.get();
+        if (current != null && !current.isAlive()) {
+            LOG.debug("Interrupting active queue_watcher thread");
+            current.interrupt();
+        }
     }
 
     public void next(Consumer<T> execute) throws InterruptedException {
@@ -39,9 +34,10 @@ public class ActionExecutor<T> {
             LOG.warn("execute must not be null, returning from next");
             return;
         }
-        if(!this.watcher.isAlive()) {
-            LOG.info("queue_watcher is not started, starting it and blocking until finishing");
-            this.watcher.start();
+        Thread current = this.watcher.get();
+        if (current == null || !current.isAlive()) {
+            LOG.debug("Interrupting active queue_watcher thread");
+            start();
         }
         exchange.put(execute);
     }
@@ -71,5 +67,23 @@ public class ActionExecutor<T> {
     public String status() {
         LOG.info("getting status from queue_watcher");
         return  status.getAndSet(null);
+    }
+
+    private synchronized void start() {
+        Thread current = watcher.get();
+        if(current == null || !current.isAlive()) {
+            Thread newly = Thread
+                    .ofVirtual()
+                    .uncaughtExceptionHandler((t, e) -> {
+                        LOG.error("Something went wrong with queue_watcher, it will start again (self-healing)", e);
+                        status.set("FAIL");
+                        this.watcher.set(null);
+                    })
+                    .name("queue_watcher")
+                    .unstarted(this::processQueue);
+            watcher.set(newly);
+            newly.start();
+            LOG.info("New queue_watcher started successfully");
+        }
     }
 }
