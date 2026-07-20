@@ -2,6 +2,7 @@ package com.facta;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class ActionExecutor<T> {
@@ -9,7 +10,7 @@ public class ActionExecutor<T> {
     private final T board;
     private final BlockingQueue<Consumer<T>> queue = new ArrayBlockingQueue<>(1);
     private final Thread watcher;
-    private String status;
+    private AtomicReference<String> status = new AtomicReference<>(null);
 
     public ActionExecutor(T board) {
         this.board = board;
@@ -28,10 +29,9 @@ public class ActionExecutor<T> {
     }
 
     public void next(Consumer<T> execute) {
-        if(execute != null){
-            status = "RUNNING";
-            queue.offer(execute);
-        }
+        if(execute == null) return;
+        status.set("RUNNING");
+        queue.offer(execute);
     }
 
     private void processQueue() {
@@ -40,9 +40,9 @@ public class ActionExecutor<T> {
                 Consumer<T> local = queue.take();
                 try{
                     local.accept(board);
-                    status = "SUCCESS";
+                    status.set("SUCCESS");
                 } catch (Exception e) {
-                    status = "FAIL";
+                    status.set("FAIL");
                 }
             }
         } catch (InterruptedException e) {
@@ -51,8 +51,6 @@ public class ActionExecutor<T> {
     }
 
     public String status() {
-        String temp = status;
-        status = null;
-        return temp;
+        return  status.getAndSet(null);
     }
 }

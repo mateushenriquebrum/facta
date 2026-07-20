@@ -2,6 +2,8 @@ package com.facta;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.CountDownLatch;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -14,23 +16,42 @@ public class ActionExecutorTest {
     @Test
     public void testNextIsConsumedCorrectly() throws InterruptedException {
         AnyBoard board = new AnyBoard();
+        CountDownLatch count = new CountDownLatch(1);
         ActionExecutor<AnyBoard> action = new ActionExecutor<>(board);
-        action.next((b) -> b.count++);
+        action.next((b) -> {
+            b.count++;
+            count.countDown();
+        });
         action.start();
-        Thread.sleep(500);
+        count.await();
         action.stop();
         assertEquals(1, board.count);
     }
 
     @Test
-    public void testDiscardSpareAction() throws InterruptedException {
+    public void testExecuteSynchronous() throws InterruptedException {
         AnyBoard board = new AnyBoard();
         ActionExecutor<AnyBoard> action = new ActionExecutor<>(board);
+        action.start();
+        for(int a = 0; a < 10; a++){
+            action.next((b) -> {
+                b.count++;
+            });
+            Thread.sleep(100);
+        }
+        action.stop();
+        assertEquals(10, board.count);
+    }
+
+    @Test
+    public void testDiscardAction() throws InterruptedException {
+        AnyBoard board = new AnyBoard();
+        ActionExecutor<AnyBoard> action = new ActionExecutor<>(board);
+        action.start();
         for(int a = 0; a < 10; a++){
             action.next((b) -> b.count++);
         }
-        action.start();
-        Thread.sleep(500);
+        Thread.sleep(100);
         action.stop();
         assertEquals(1, board.count);
     }
