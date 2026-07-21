@@ -159,19 +159,8 @@ public class NodeTest {
         assertEquals(Status.FAILURE, root.tick(context));
     }
 
-
     @Test
-    void shouldCacheActionResult() {
-        Node root = new Sequence(new Action(A_RN_NK));
-        assertEquals(Status.RUNNING, root.tick(context));
-        assertEquals(Status.FAILURE, root.tick(context));
-        assertEquals(Status.FAILURE, root.tick(context));
-        assertEquals(Status.FAILURE, root.tick(context));
-        Assertions.assertEquals(2, A_RN_NK.invoked);
-    }
-
-    @Test
-    void shouldCleanUpSequenceBranchNotBeingActive() {
+    void shouldCacheSequenceActionResult() {
         Node sequence = new Sequence(
                 new Action(A_RN_NK),
                 new Action(A_OK));
@@ -184,20 +173,18 @@ public class NodeTest {
         Assertions.assertEquals(0, A_OK.invoked);
     }
 
-    @Test void testMachinery() {
-        var a = new Verifiable(new Rotational(Status.RUNNING, Status.FAILURE));
-        assertEquals(a.get(), Status.RUNNING);
-        assertEquals(a.get(), Status.FAILURE);
-        assertEquals(a.get(), Status.RUNNING);
-        assertEquals(a.get(), Status.FAILURE);
-        assertEquals(a.invoked, 4);
+    @Test
+    void shouldCacheFallbackActionResult() {
+        Node fallback = new Fallback(
+                new Action(0, A_RN_NK),
+                new Action(1, A_OK));
+        assertEquals(Status.RUNNING, fallback.tick(context));
+        assertEquals(Status.SUCCESS, fallback.tick(context));
+        assertEquals(Status.SUCCESS, fallback.tick(context));
+        assertEquals(Status.SUCCESS, fallback.tick(context));
 
-        var b = new Verifiable(new Sequential(Status.RUNNING, Status.FAILURE));
-        assertEquals(b.get(), Status.RUNNING);
-        assertEquals(b.get(), Status.FAILURE);
-        assertEquals(b.get(), Status.FAILURE);
-        assertEquals(b.invoked, 3);
-
+        Assertions.assertEquals(2, A_RN_NK.invoked);
+        Assertions.assertEquals(1, A_OK.invoked);
     }
 
     static class Verifiable<T> implements Supplier<T> {
