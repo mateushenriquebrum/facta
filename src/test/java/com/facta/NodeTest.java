@@ -19,6 +19,7 @@ public class NodeTest {
     Verifiable<Status>              AS_RN;
     Verifiable<Status>              AS_RN_NK;
     Verifiable<Status>              AS_RN_NK_NK;
+    Verifiable<Status>              AR_RN_OK;
     Verifiable<Status>              AS_RN_OK;
     Supplier<Status>                A_EXCEPTION = () -> {throw new RuntimeException();};
     Supplier<Verification>          B_EXCEPTION = () -> {throw new RuntimeException();};
@@ -199,6 +200,23 @@ public class NodeTest {
 
     }
 
+    @Test
+    void shouldKeepAllTheSequenceCached() {
+        Node root = new Sequence(new Belief(BS_OK),
+                new Action(0, AR_RN_OK),
+                new Action(1, AR_RN_OK),
+                new Action(2, AR_RN_OK));
+        assertEquals(Status.RUNNING, context.prepare(root::tick));
+        assertEquals(Status.RUNNING, context.prepare(root::tick));
+        assertEquals(Status.RUNNING, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
+
+        assertEquals(6, AR_RN_OK.invoked);
+        assertEquals(3, context.cached.size());
+    }
+
     static class Verifiable<T> implements Supplier<T> {
         int invoked = 0;
         private final Supplier<T> decorate;
@@ -265,6 +283,7 @@ public class NodeTest {
         AS_RN_OK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.SUCCESS));
         BR_OK_OK_NK = new Verifiable<>(new Rotational<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
         BS_OK_OK_NK = new Verifiable<>(new Sequential<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
+        AR_RN_OK = new Verifiable<>(new Rotational<>(Status.RUNNING, Status.SUCCESS));
         context = new Context();
     }
 }

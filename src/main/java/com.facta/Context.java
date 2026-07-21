@@ -18,4 +18,10 @@ public class Context {
         active.clear();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Context{" +
+                "cached=" + cached +'}';
+    }
 }

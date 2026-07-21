@@ -1,6 +1,9 @@
 package com.facta;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.function.Supplier;
 
 import static com.facta.Node.Status.*;
@@ -17,35 +20,46 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
     Status tick(Context context);
 
     record Sequence(Node... children) implements Node {
+
+        private static final Logger LOG =  LoggerFactory.getLogger(Sequence.class);
+
         @Override
         public Status tick(Context context) {
+            LOG.debug("Context {}, children {}", context, children.length);
             for (Node node : children) {
                 Status status = node.tick(context);
                 switch (status) {
                     case FAILURE, RUNNING -> {
+                        LOG.debug("Left prematurely after {}", status);
                         return status;
                     }
                     case SUCCESS -> {
                     }
                 }
             }
+            LOG.debug("Left after {}", SUCCESS);
             return SUCCESS;
         }
     }
 
     record Fallback(Node... children) implements Node {
+        private static final Logger LOG =  LoggerFactory.getLogger(Fallback.class);
+
         @Override
         public Status tick(Context context) {
+            LOG.debug("Context {}, children {}", context, children.length);
             for (Node node : children) {
                 Status status = node.tick(context);
                 switch (status) {
                     case SUCCESS, RUNNING -> {
+                        LOG.debug("Left prematurely after {}", status);
                         return status;
                     }
                     case FAILURE -> {
                     }
                 }
             }
+            LOG.debug("Left after {}", FAILURE);
             return FAILURE;
         }
     }
