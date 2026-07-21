@@ -4,6 +4,7 @@ package com.facta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import static com.facta.Node.Status.*;
@@ -19,13 +20,13 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     Status tick(Context context);
 
-    record Sequence(Node... children) implements Node {
+    record Sequence(List<Node> children) implements Node {
 
         private static final Logger LOG =  LoggerFactory.getLogger(Sequence.class);
 
         @Override
         public Status tick(Context context) {
-            LOG.debug("Context {}, children {}", context, children.length);
+            LOG.debug("Context {}, children {}", context, children.size());
             for (Node node : children) {
                 Status status = node.tick(context);
                 switch (status) {
@@ -42,12 +43,12 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
         }
     }
 
-    record Fallback(Node... children) implements Node {
+    record Fallback(List<Node> children) implements Node {
         private static final Logger LOG =  LoggerFactory.getLogger(Fallback.class);
 
         @Override
         public Status tick(Context context) {
-            LOG.debug("Context {}, children {}", context, children.length);
+            LOG.debug("Context {}, children {}", context, children.size());
             for (Node node : children) {
                 Status status = node.tick(context);
                 switch (status) {
