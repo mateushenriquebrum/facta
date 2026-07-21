@@ -9,7 +9,7 @@ import static java.util.List.of;
 public class Facta<B> {
 
     private Facta() {}
-    private static int index = 0;
+    public static int index = 0;
 
     @SafeVarargs
     public static <B> Node.Sequence<B> Sequence(Node<B> ... children) {

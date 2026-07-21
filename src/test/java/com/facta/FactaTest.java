@@ -17,7 +17,6 @@ public class FactaTest {
     static class Board {
         boolean home = false;
         int x, y = 0;
-        
     }
 
     private Board board;
@@ -25,6 +24,7 @@ public class FactaTest {
     @BeforeEach
     void setUp() {
         board = new Board();
+        index = 0; //TODO: solve static member
     }
     
     @Test
