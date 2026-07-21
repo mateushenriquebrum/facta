@@ -1,5 +1,7 @@
 package com.facta;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.function.Function;
 
 import static java.util.List.of;
@@ -28,8 +30,24 @@ public class Facta<B> {
         return new Node.Action<>(index++, perform);
     }
 
+    public static <B> Of<B> Of(Node<B> node) {
+        return new Of<>(node);
+    }
+
     public static <B> Node.Inverse<B> Inverse(Node.Belief<B> belief) {
         return new Node.Inverse<>(belief);
+    }
+
+    public static class Of<B> {
+        private final Node<B> node;
+        public Of(Node<B> node) {
+            this.node = node;
+        }
+
+        public Live<B> With(B board) {
+            Root.Context<B> context = new Root.Context<>(board, new HashMap<>(), new HashSet<>());
+            return new Live<>(node, context);
+        }
     }
 
 }
