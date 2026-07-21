@@ -11,25 +11,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NodeTest {
 
-    VerifiableCondition B_OK;
-    VerifiableCondition B_NK;
-    VerifiableAction    A_OK;
-    VerifiableAction    A_NK;
-    VerifiableAction    A_RN;
-    VerifiableAction    A_RN_NK;
-    VerifiableAction    A_RN_NK_NK;
+    Verifiable<Verification>        B_OK;
+    Verifiable<Verification>        B_NK;
+    Verifiable<Status>              A_OK;
+    Verifiable<Status>              A_NK;
+    Verifiable<Status>              A_RN;
+    Verifiable<Status>              A_RN_NK;
+    Verifiable<Status>              A_RN_NK_NK;
 
     Context context;
 
     @BeforeEach
     public void setUp() {
-        B_OK = new VerifiableCondition(Verification.SUCCESS);
-        B_NK = new VerifiableCondition(Verification.FAILURE);
-        A_OK = new VerifiableAction(Status.SUCCESS);
-        A_NK = new VerifiableAction(Status.FAILURE);
-        A_RN = new VerifiableAction(Status.RUNNING);
-        A_RN_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE);
-        A_RN_NK_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE, Status.FAILURE);
+        B_OK = new Verifiable<>(new Sequential<>(Verification.SUCCESS));
+        B_NK = new Verifiable<>(new Sequential<>(Verification.FAILURE));
+        A_OK = new Verifiable<>(new Sequential<>(Status.SUCCESS));
+        A_NK = new Verifiable<>(new Sequential<>(Status.FAILURE));
+        A_RN = new Verifiable<>(new Sequential<>(Status.RUNNING));
+        A_RN_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE));
+        A_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
         context = new Context();
     }
 
@@ -197,11 +197,28 @@ public class NodeTest {
         Assertions.assertEquals(0, A_OK.invoked);
     }
 
+    @Test void testMachinery() {
+        var a = new Verifiable(new Rotational(Status.RUNNING, Status.FAILURE));
+        assertEquals(a.get(), Status.RUNNING);
+        assertEquals(a.get(), Status.FAILURE);
+        assertEquals(a.get(), Status.RUNNING);
+        assertEquals(a.get(), Status.FAILURE);
+        assertEquals(a.invoked, 4);
+
+        var b = new Verifiable(new Sequential(Status.RUNNING, Status.FAILURE));
+        assertEquals(b.get(), Status.RUNNING);
+        assertEquals(b.get(), Status.FAILURE);
+        assertEquals(b.get(), Status.FAILURE);
+        assertEquals(b.invoked, 3);
+
+    }
+
+
 //    @Test
 //    void shouldTrampolineBetweenActions() {
 //        Node root = new Fallback(
-//                new Sequence(new Belief(B_OK_OK_NK_NK), new Action(0, A_RN_OK)),
-//                new Sequence(new Belief(B_OK_OK), new Action(1, A_RN_OK))
+//                new Sequential(new Belief(B_OK_OK_NK_NK), new Action(0, A_RN_OK)),
+//                new Sequential(new Belief(B_OK_OK), new Action(1, A_RN_OK))
 //        );
 //        assertEquals(Status.RUNNING, root.tick(context));
 //        assertEquals(Status.SUCCESS, root.tick(context));
@@ -215,17 +232,32 @@ public class NodeTest {
 //
 //    }
 
-    static class VerifiableCondition implements Supplier<Verification> {
-        public int invoked = 0;
-        private final Verification[] sequence;
-        int index = 0;
-
-        public VerifiableCondition(Verification ... rotate) {
-            this.sequence = rotate;
+    static class Verifiable<T> implements Supplier<T> {
+        int invoked = 0;
+        private final Supplier<T> decorate;
+        public  Verifiable (Supplier<T> decorate) {
+            this.decorate = decorate;
         }
 
         @Override
-        public Verification get() {
+        public T get() {
+            invoked++;
+            return this.decorate.get();
+        }
+    }
+
+    static class Sequential<T> implements Supplier<T> {
+
+        int invoked = 0;
+        private final T[] sequence;
+        private int index = 0;
+
+        public Sequential(T ... sequence) {
+            this.sequence = sequence;
+        }
+
+        @Override
+        public T get() {
             invoked++;
             if(index == sequence.length - 1) {
                 return sequence[index];
@@ -234,22 +266,22 @@ public class NodeTest {
         }
     }
 
-    static class VerifiableAction implements Supplier<Status> {
-        public int invoked = 0;
-        private final Status[] sequence;
+    static class Rotational<T> implements Supplier<T> {
+        private final T[] rotation;
         int index = 0;
 
-        public VerifiableAction(Status ... sequence) {
-            this.sequence = sequence;
+        Rotational(T ... rotation) {
+            this.rotation = rotation;
         }
 
         @Override
-        public Status get() {
-            invoked++;
-            if(index == sequence.length - 1) {
-                return sequence[index];
+        public T get() {
+            if(index == rotation.length - 1) {
+                var tmp = rotation[index];
+                index = 0;
+                return tmp;
             }
-            return sequence[index++];
+            return rotation[index++];
         }
     }
 }
