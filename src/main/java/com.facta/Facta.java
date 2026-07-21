@@ -1,18 +1,19 @@
 package com.facta;
 
-public class Facta<T> {
-    T board;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
-    public Facta(T board) {
-        this.board = board;
+public class Facta<B> {
+    public static class Seq<B> {
+        public Live<B> With(B board) {
+            Root.Context<B> context = new Root.Context<>(board, new HashMap<>(), new HashSet<>());
+            Node<B> sequence = new Node.Sequence<>(List.of());
+            return new Live<B>(sequence, context);
+        }
     }
 
-    public Root sequence(Node ... nodes) {
-        if (nodes.length == 0) throw new IllegalArgumentException("Nodes cannot be empty");
-        return new Root();
-    }
-
-    public Node belief() {
-        return new Node.Belief((board) -> null);
+    public static <B> Seq<B> Sequence() {
+        return new Seq<>();
     }
 }

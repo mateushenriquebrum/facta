@@ -1,8 +1,8 @@
 package com.facta;
 
 public class Live<B> {
-    private final Node<B> node;
-    private final Root.Context<B> context;
+    final Node<B> node;
+    final Root.Context<B> context;
 
     public Live(Node<B> node, Root.Context<B> context) {
         this.node = node;
@@ -13,5 +13,13 @@ public class Live<B> {
         Node.Status status = Root.tick(node, context);
         context.ticked();
         return status;
+    }
+
+    @Override
+    public String toString() {
+        return "Live{" +
+                "node=" + node +
+                ", context=" + context +
+                '}';
     }
 }
