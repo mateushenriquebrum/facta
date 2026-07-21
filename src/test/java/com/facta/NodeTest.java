@@ -171,19 +171,6 @@ public class NodeTest {
     }
 
     @Test
-    void shouldCleanUpFallbackBranchNotBeingActive() {
-        Node fallback = new Fallback(
-                new Action(0, A_RN_NK_NK),
-                new Action(1, A_OK));
-        assertEquals(Status.RUNNING, fallback.tick(context));
-        assertEquals(Status.SUCCESS, fallback.tick(context));
-        assertEquals(Status.SUCCESS, fallback.tick(context));
-
-        Assertions.assertEquals(2, A_RN_NK.invoked);
-        Assertions.assertEquals(1, A_OK.invoked);
-    }
-
-    @Test
     void shouldCleanUpSequenceBranchNotBeingActive() {
         Node sequence = new Sequence(
                 new Action(A_RN_NK),
@@ -212,25 +199,6 @@ public class NodeTest {
         assertEquals(b.invoked, 3);
 
     }
-
-
-//    @Test
-//    void shouldTrampolineBetweenActions() {
-//        Node root = new Fallback(
-//                new Sequential(new Belief(B_OK_OK_NK_NK), new Action(0, A_RN_OK)),
-//                new Sequential(new Belief(B_OK_OK), new Action(1, A_RN_OK))
-//        );
-//        assertEquals(Status.RUNNING, root.tick(context));
-//        assertEquals(Status.SUCCESS, root.tick(context));
-//        assertEquals(Status.RUNNING, root.tick(context));
-//        assertEquals(Status.SUCCESS, root.tick(context));
-//
-//        assertEquals(Status.RUNNING, root.tick(context));
-//        assertEquals(Status.SUCCESS, root.tick(context));
-//        assertEquals(Status.RUNNING, root.tick(context));
-//        assertEquals(Status.SUCCESS, root.tick(context));
-//
-//    }
 
     static class Verifiable<T> implements Supplier<T> {
         int invoked = 0;
