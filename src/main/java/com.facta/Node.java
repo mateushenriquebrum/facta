@@ -70,15 +70,27 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
         }
     }
 
-    record Action(Supplier<Status> perform) implements Node {
+    record Action(Integer id, Supplier<Status> perform) implements Node {
+
+        public Action (Supplier<Status> perform) {
+            this(0, perform);
+        }
+
         @Override
         public Status tick(Context context) {
+            if (context.cached.get(id) != null) return context.cached.get(id);
+            Status result;
             try {
-                return perform.get();
+                result = perform.get();
+
             } catch (Exception ex) {
                 // Good messages here about intentions
-                return FAILURE;
+                result = FAILURE;
             }
+            if (result != RUNNING) {
+                context.cached.put(id, result);
+            }
+            return result;
         }
     }
 }

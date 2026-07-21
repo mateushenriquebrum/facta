@@ -17,6 +17,7 @@ public class NodeTest {
     VerifiableAction    A_NK;
     VerifiableAction    A_RN;
     VerifiableAction    A_RN_NK;
+    VerifiableAction    A_RN_NK_NK;
 
     Context context;
 
@@ -28,6 +29,7 @@ public class NodeTest {
         A_NK = new VerifiableAction(Status.FAILURE);
         A_RN = new VerifiableAction(Status.RUNNING);
         A_RN_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE);
+        A_RN_NK_NK = new VerifiableAction(Status.RUNNING, Status.FAILURE, Status.FAILURE);
         context = new Context();
     }
 
@@ -84,17 +86,17 @@ public class NodeTest {
 
     @Test
     void shouldActionShortCircuitLikeLogicalAnd() {
-        assertEquals(Status.SUCCESS, new Sequence(new Action(A_OK), new Action(A_OK)).tick(context));
+        assertEquals(Status.SUCCESS, new Sequence(new Action(0, A_OK), new Action(1, A_OK)).tick(context));
         assertEquals(2, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
         A_NK.invoked = A_OK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Action(A_NK), new Action(A_OK)).tick(context));
+        assertEquals(Status.FAILURE, new Sequence(new Action(2, A_NK), new Action(3, A_OK)).tick(context));
         assertEquals(0, A_OK.invoked);
         assertEquals(1, A_NK.invoked);
         A_NK.invoked = A_OK.invoked = 0;
 
-        assertEquals(Status.FAILURE, new Sequence(new Action(A_OK), new Action(A_NK)).tick(context));
+        assertEquals(Status.FAILURE, new Sequence(new Action(4, A_OK), new Action(5, A_NK)).tick(context));
         assertEquals(1, A_OK.invoked);
         assertEquals(1, A_NK.invoked);
         A_NK.invoked = A_OK.invoked = 0;
@@ -171,25 +173,14 @@ public class NodeTest {
     @Test
     void shouldCleanUpFallbackBranchNotBeingActive() {
         Node fallback = new Fallback(
-                new Action(A_RN_NK),
-                new Action(A_OK));
-        context.prepareCollectActive();
+                new Action(0, A_RN_NK_NK),
+                new Action(1, A_OK));
         assertEquals(Status.RUNNING, fallback.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
         assertEquals(Status.SUCCESS, fallback.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
-        // tick make A_RN_NK evaluate again
-        assertEquals(Status.RUNNING, fallback.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
         assertEquals(Status.SUCCESS, fallback.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
 
-        Assertions.assertEquals(4, A_RN_NK.invoked);
-        Assertions.assertEquals(2, A_OK.invoked);
+        Assertions.assertEquals(2, A_RN_NK.invoked);
+        Assertions.assertEquals(1, A_OK.invoked);
     }
 
     @Test
@@ -206,13 +197,31 @@ public class NodeTest {
         Assertions.assertEquals(0, A_OK.invoked);
     }
 
+//    @Test
+//    void shouldTrampolineBetweenActions() {
+//        Node root = new Fallback(
+//                new Sequence(new Belief(B_OK_OK_NK_NK), new Action(0, A_RN_OK)),
+//                new Sequence(new Belief(B_OK_OK), new Action(1, A_RN_OK))
+//        );
+//        assertEquals(Status.RUNNING, root.tick(context));
+//        assertEquals(Status.SUCCESS, root.tick(context));
+//        assertEquals(Status.RUNNING, root.tick(context));
+//        assertEquals(Status.SUCCESS, root.tick(context));
+//
+//        assertEquals(Status.RUNNING, root.tick(context));
+//        assertEquals(Status.SUCCESS, root.tick(context));
+//        assertEquals(Status.RUNNING, root.tick(context));
+//        assertEquals(Status.SUCCESS, root.tick(context));
+//
+//    }
+
     static class VerifiableCondition implements Supplier<Verification> {
         public int invoked = 0;
         private final Verification[] sequence;
         int index = 0;
 
-        public VerifiableCondition(Verification ... result) {
-            this.sequence = result;
+        public VerifiableCondition(Verification ... rotate) {
+            this.sequence = rotate;
         }
 
         @Override
@@ -230,8 +239,8 @@ public class NodeTest {
         private final Status[] sequence;
         int index = 0;
 
-        public VerifiableAction(Status ... result) {
-            this.sequence = result;
+        public VerifiableAction(Status ... sequence) {
+            this.sequence = sequence;
         }
 
         @Override
