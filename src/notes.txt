@@ -4,15 +4,17 @@ Thinks to do eventually
 
 API
 
-Facta(board).sequence("find home",
-                belief("not at home now", (board) -> board.home == false),
-                action("go forward", out(2, seconds()),(board) -> {
-                            while (board.home == false) {
-                                board.x += 10;
-                                board.home = board.x == 40;
-                            }
-                        }
-                ));
+
+    sequence("find home",
+        belief("not at home now", (board) -> board.home == false),
+        action("go forward", out(2, seconds()),(board) -> {
+            while (board.home == false) {
+                board.x += 10;
+                board.home = board.x == 40;
+            }
+        }
+        )
+    ).with(board);
 
         [->] find home
                 - (not at home now)

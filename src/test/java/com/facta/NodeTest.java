@@ -210,9 +210,7 @@ public class NodeTest {
     }
 
     public Status tick(Node<Board> node) {
-        Status status = Root.tick(node, context);
-        context.ticked();
-        return status;
+        return new Live<>(node, context).tick();
     }
 
     static class Verifiable<B, T> implements Function<B, T> {
