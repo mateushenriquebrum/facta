@@ -1,6 +1,8 @@
 Thinks to do eventually
-1 - Root.tick() completely deterministic returning Tick<Status, Context);
-2 - Make time travel with Tick record;
+0 - Make Action IO Thread and return RUNNING/SUCCESS/FAILURE
+1 - Working on a DSL
+2 - Root.tick() completely deterministic returning Tick<Status, Context);
+3 - Make time travel with Tick record;
 
 API
 
