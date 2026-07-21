@@ -6,6 +6,10 @@ import java.util.function.Function;
 
 import static java.util.List.of;
 
+/**
+ * DSL over API
+ * @param <B>
+ */
 public class Facta<B> {
 
     private Facta() {}
@@ -15,7 +19,6 @@ public class Facta<B> {
     public static <B> Node.Sequence<B> Sequence(Node<B> ... children) {
         return new Node.Sequence<>(of(children));
     }
-
 
     @SafeVarargs
     public static <B> Node.Fallback<B> Fallback(Node<B> ... children) {
