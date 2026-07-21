@@ -1,14 +1,13 @@
 package com.facta;
 
 import com.facta.Node.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DisplayName("nodes")
 public class NodeTest {
 
     Verifiable<Verification>        B_OK;
@@ -23,14 +22,7 @@ public class NodeTest {
 
     @BeforeEach
     public void setUp() {
-        B_OK = new Verifiable<>(new Sequential<>(Verification.SUCCESS));
-        B_NK = new Verifiable<>(new Sequential<>(Verification.FAILURE));
-        A_OK = new Verifiable<>(new Sequential<>(Status.SUCCESS));
-        A_NK = new Verifiable<>(new Sequential<>(Status.FAILURE));
-        A_RN = new Verifiable<>(new Sequential<>(Status.RUNNING));
-        A_RN_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE));
-        A_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
-        context = new Context();
+        reset();
     }
 
     @Test
@@ -38,50 +30,50 @@ public class NodeTest {
         assertEquals(Status.FAILURE, new Inverse(new Belief(B_OK)).tick(context));
         assertEquals(Status.SUCCESS, new Inverse(new Belief(B_NK)).tick(context));
     }
+
     @Test
     public void shouldBeliefShortCircuitLikeLogicalAnd() {
         assertEquals(Status.SUCCESS, new Sequence(new Belief(B_OK), new Belief(B_OK)).tick(context));
         assertEquals(2, B_OK.invoked);
         assertEquals(0, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(B_OK), new Belief(B_NK)).tick(context));
         assertEquals(1, B_OK.invoked);
         assertEquals(1, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(B_NK), new Belief(B_OK)).tick(context));
         assertEquals(0, B_OK.invoked);
         assertEquals(1, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Sequence(new Belief(B_NK), new Belief(B_NK)).tick(context));
         assertEquals(0, B_OK.invoked);
         assertEquals(1, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
-
+        reset();
     }
     @Test
     public void shouldBeliefShortCircuitLikeLogicalOr() {
         assertEquals(Status.SUCCESS, new Fallback(new Belief(B_OK), new Belief(B_OK)).tick(context));
         assertEquals(1, B_OK.invoked);
         assertEquals(0, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.SUCCESS, new Fallback(new Belief(B_OK), new Belief(B_NK)).tick(context));
         assertEquals(1, B_OK.invoked);
         assertEquals(0, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.SUCCESS, new Fallback(new Belief(B_NK), new Belief(B_OK)).tick(context));
         assertEquals(1, B_OK.invoked);
         assertEquals(1, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Fallback(new Belief(B_NK), new Belief(B_NK)).tick(context));
         assertEquals(0, B_OK.invoked);
         assertEquals(2, B_NK.invoked);
-        B_OK.invoked = B_NK.invoked = 0;
+        reset();
     }
 
     @Test
@@ -89,56 +81,56 @@ public class NodeTest {
         assertEquals(Status.SUCCESS, new Sequence(new Action(0, A_OK), new Action(1, A_OK)).tick(context));
         assertEquals(2, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Sequence(new Action(2, A_NK), new Action(3, A_OK)).tick(context));
         assertEquals(0, A_OK.invoked);
         assertEquals(1, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = 0;
+        reset();
 
         assertEquals(Status.FAILURE, new Sequence(new Action(4, A_OK), new Action(5, A_NK)).tick(context));
         assertEquals(1, A_OK.invoked);
         assertEquals(1, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = 0;
+        reset();
     }
 
     @Test
     void shouldActionShortCircuitLikeLogicalOr() {
-        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_OK)).tick(context));
+        assertEquals(Status.RUNNING, new Sequence(new Action(0, A_RN), new Action(1, A_OK)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
 
-        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_NK)).tick(context));
+        assertEquals(Status.RUNNING, new Sequence(new Action(2, A_RN), new Action(3, A_NK)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
 
-        assertEquals(Status.RUNNING, new Sequence(new Action(A_RN), new Action(A_RN)).tick(context));
+        assertEquals(Status.RUNNING, new Sequence(new Action(4, A_RN), new Action(5, A_RN)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
 
         assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_OK)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
 
         assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_NK)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
 
         assertEquals(Status.RUNNING, new Fallback(new Action(A_RN), new Action(A_RN)).tick(context));
         assertEquals(1, A_RN.invoked);
         assertEquals(0, A_OK.invoked);
         assertEquals(0, A_NK.invoked);
-        A_NK.invoked = A_OK.invoked = A_RN.invoked = 0;
+        reset();
     }
 
     @Test
@@ -238,5 +230,16 @@ public class NodeTest {
             }
             return rotation[index++];
         }
+    }
+
+    private void reset() {
+        B_OK = new Verifiable<>(new Sequential<>(Verification.SUCCESS));
+        B_NK = new Verifiable<>(new Sequential<>(Verification.FAILURE));
+        A_OK = new Verifiable<>(new Sequential<>(Status.SUCCESS));
+        A_NK = new Verifiable<>(new Sequential<>(Status.FAILURE));
+        A_RN = new Verifiable<>(new Sequential<>(Status.RUNNING));
+        A_RN_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE));
+        A_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
+        context = new Context();
     }
 }
