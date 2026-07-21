@@ -1,103 +1,21 @@
 package com.facta;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.facta.Node.Status.*;
 
 public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, Node.Inverse, Node.Sequence {
-    enum Status {
-        SUCCESS, FAILURE, RUNNING
-    }
+    enum Status {SUCCESS, FAILURE, RUNNING}
 
-    enum Verification {
-        SUCCESS, FAILURE
-    }
+    enum Verification {SUCCESS, FAILURE}
 
-    Status tick(Context context);
+    record Sequence(List<Node> children) implements Node {}
 
-    record Sequence(List<Node> children) implements Node {
+    record Fallback(List<Node> children) implements Node {}
 
-        private static final Logger LOG =  LoggerFactory.getLogger(Sequence.class);
+    record Belief(Supplier<Verification> condition) implements Node {}
 
-        @Override
-        public Status tick(Context context) {
-            LOG.debug("Context {}, children {}", context, children.size());
-            for (Node node : children) {
-                Status status = node.tick(context);
-                if(status != SUCCESS) {
-                    LOG.debug("Left prematurely after {}", status);
-                    return status;
-                }
-            }
-            LOG.debug("Left after {}", SUCCESS);
-            return SUCCESS;
-        }
-    }
+    record Inverse(Belief belief) implements Node {}
 
-    record Fallback(List<Node> children) implements Node {
-        private static final Logger LOG =  LoggerFactory.getLogger(Fallback.class);
-
-        @Override
-        public Status tick(Context context) {
-            LOG.debug("Context {}, children {}", context, children.size());
-            for (Node node : children) {
-                Status status = node.tick(context);
-                if(status != FAILURE) {
-                    LOG.debug("Left prematurely after {}", status);
-                    return status;
-                }
-            }
-            LOG.debug("Left after {}", FAILURE);
-            return FAILURE;
-        }
-    }
-
-    record Belief(Supplier<Verification> condition) implements Node {
-        @Override
-        public Status tick(Context context) {
-            try {
-                return condition.get() == Verification.SUCCESS ? Status.SUCCESS : Status.FAILURE;
-            }
-            catch (Exception e) {
-                // Good messages here about intentions
-                return FAILURE;
-            }
-        }
-    }
-
-    record Inverse(Belief belief) implements Node {
-        @Override
-        public Status tick(Context context) {
-            return belief.tick(context) == SUCCESS ? FAILURE : SUCCESS;
-        }
-    }
-
-    record Action(Integer id, Supplier<Status> perform) implements Node {
-
-        @Override
-        public Status tick(Context context) {
-            if (context.cached.get(id) != null) {
-                context.active.add(id);
-                return context.cached.get(id);
-            }
-            Status result;
-            try {
-                result = perform.get();
-
-            } catch (Exception ex) {
-                // Good messages here about intentions
-                result = FAILURE;
-            }
-            if (result != RUNNING) {
-                context.cached.put(id, result);
-                context.active.add(id);
-            }
-            return result;
-        }
-    }
+    record Action(Integer id, Supplier<Status> perform) implements Node {}
 }
