@@ -6,6 +6,10 @@ import java.util.function.Function;
 
 import static java.util.List.of;
 
+/**
+ * DSL over API
+ * @param <B>
+ */
 public class Facta<B> {
 
     private Facta() {}
