@@ -29,13 +29,9 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
             LOG.debug("Context {}, children {}", context, children.size());
             for (Node node : children) {
                 Status status = node.tick(context);
-                switch (status) {
-                    case FAILURE, RUNNING -> {
-                        LOG.debug("Left prematurely after {}", status);
-                        return status;
-                    }
-                    case SUCCESS -> {
-                    }
+                if(status != SUCCESS) {
+                    LOG.debug("Left prematurely after {}", status);
+                    return status;
                 }
             }
             LOG.debug("Left after {}", SUCCESS);
@@ -51,13 +47,9 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
             LOG.debug("Context {}, children {}", context, children.size());
             for (Node node : children) {
                 Status status = node.tick(context);
-                switch (status) {
-                    case SUCCESS, RUNNING -> {
-                        LOG.debug("Left prematurely after {}", status);
-                        return status;
-                    }
-                    case FAILURE -> {
-                    }
+                if(status != FAILURE) {
+                    LOG.debug("Left prematurely after {}", status);
+                    return status;
                 }
             }
             LOG.debug("Left after {}", FAILURE);
