@@ -26,7 +26,7 @@ final public class Root {
                 for (Node child : sequence.children()) {
                     Node.Status status = tick(child, context);
                     if(status != SUCCESS) {
-                        LOG.debug("Sequence feft prematurely after {}", status);
+                        LOG.debug("Sequence left prematurely after {}", status);
                         yield status;
                     }
                 }
