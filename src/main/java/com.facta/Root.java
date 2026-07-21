@@ -47,7 +47,7 @@ final public class Root<B> {
             }
             case Node.Belief<B> belief -> {
                 try {
-                    yield belief.condition().apply(context.board) == Node.Verification.SUCCESS
+                    yield belief.condition().apply(context.board)
                             ? Node.Status.SUCCESS
                             : Node.Status.FAILURE;
                 } catch (Exception e) {

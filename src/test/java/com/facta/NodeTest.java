@@ -13,20 +13,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DisplayName("nodes")
 public class NodeTest {
 
-    Verifiable<Board, Verification>        BS_OK;
-    Verifiable<Board, Verification>        BS_NK;
-    Verifiable<Board, Verification>        BS_OK_OK_NK;
-    Verifiable<Board, Verification>        BR_OK_OK_NK;
-    Verifiable<Board, Status>              AS_OK;
-    Verifiable<Board, Status>              AS_NK;
-    Verifiable<Board, Status>              AS_RN;
-    Verifiable<Board, Status>              AS_RN_NK;
-    Verifiable<Board, Status>              AS_RN_NK_NK;
-    Verifiable<Board, Status>              AR_RN_OK;
-    Verifiable<Board, Status>              AS_RN_OK;
-    Function<Board, Status>                A_EXCEPTION = (board) -> {throw new RuntimeException();};
-    Function<Board, Verification>          B_EXCEPTION = (board) -> {throw new RuntimeException();};
-    Root.Context<Board> context;
+    Verifiable<Board, Boolean>              BS_OK;
+    Verifiable<Board, Boolean>              BS_NK;
+    Verifiable<Board, Boolean>              BS_OK_OK_NK;
+    Verifiable<Board, Status>               AS_OK;
+    Verifiable<Board, Status>               AS_NK;
+    Verifiable<Board, Status>               AS_RN;
+    Verifiable<Board, Status>               AS_RN_NK;
+    Verifiable<Board, Status>               AS_RN_NK_NK;
+    Verifiable<Board, Status>               AR_RN_OK;
+    Verifiable<Board, Status>               AS_RN_OK;
+    Function<Board, Status>                 A_EXCEPTION = (board) -> {throw new RuntimeException();};
+    Function<Board, Boolean>                B_EXCEPTION = (board) -> {throw new RuntimeException();};
+    Root.Context<Board>                     context;
 
     @BeforeEach
     public void setUp() {
@@ -269,16 +268,15 @@ public class NodeTest {
     }
 
     private void reset() {
-        BS_OK = new Verifiable<>(new Sequential<>(Verification.SUCCESS));
-        BS_NK = new Verifiable<>(new Sequential<>(Verification.FAILURE));
+        BS_OK_OK_NK = new Verifiable<>(new Sequential<>(Boolean.TRUE, Boolean.TRUE, Boolean.FALSE));
+        BS_OK = new Verifiable<>(new Sequential<>(Boolean.TRUE));
+        BS_NK = new Verifiable<>(new Sequential<>(Boolean.FALSE));
         AS_OK = new Verifiable<>(new Sequential<>(Status.SUCCESS));
         AS_NK = new Verifiable<>(new Sequential<>(Status.FAILURE));
         AS_RN = new Verifiable<>(new Sequential<>(Status.RUNNING));
         AS_RN_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE));
         AS_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
         AS_RN_OK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.SUCCESS));
-        BR_OK_OK_NK = new Verifiable<>(new Rotational<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
-        BS_OK_OK_NK = new Verifiable<>(new Sequential<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
         AR_RN_OK = new Verifiable<>(new Rotational<>(Status.RUNNING, Status.SUCCESS));
         context = new Root.Context<>(new Board(), new HashMap<>(), new HashSet<>());
     }
