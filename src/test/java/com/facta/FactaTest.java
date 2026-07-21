@@ -25,6 +25,7 @@ public class FactaTest {
     @BeforeEach
     void setUp() {
         board = new Board();
+        index = 0; //TODO: solve static member
     }
     
     @Test
