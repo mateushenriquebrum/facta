@@ -12,6 +12,7 @@ public class NodeTest {
 
     Verifiable<Verification>        BS_OK;
     Verifiable<Verification>        BS_NK;
+    Verifiable<Verification>        BS_OK_OK_NK;
     Verifiable<Verification>        BR_OK_OK_NK;
     Verifiable<Status>              AS_OK;
     Verifiable<Status>              AS_NK;
@@ -169,13 +170,10 @@ public class NodeTest {
 
     @Test
     void shouldCacheFallbackActionResult() {
-        Node fallback = new Fallback(
-                new Action(0, AS_RN_NK),
-                new Action(1, AS_OK));
-        assertEquals(Status.RUNNING, fallback.tick(context));
-        assertEquals(Status.SUCCESS, fallback.tick(context));
-        assertEquals(Status.SUCCESS, fallback.tick(context));
-        assertEquals(Status.SUCCESS, fallback.tick(context));
+        Node root = new Fallback(new Action(0, AS_RN_NK), new Action(1, AS_OK));
+        assertEquals(Status.RUNNING, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
 
         Assertions.assertEquals(2, AS_RN_NK.invoked);
         Assertions.assertEquals(1, AS_OK.invoked);
@@ -183,22 +181,14 @@ public class NodeTest {
 
     @Test
     void shouldRemoveCacheWhenActionIsUnreachable() {
-        Node root = new Sequence(new Belief(BR_OK_OK_NK), new Action(0, AS_RN_OK));
+        Node root = new Sequence(new Belief(BS_OK_OK_NK), new Action(0, AS_RN_OK));
 
-        context.removeInactive();
-        context.prepareCollectActive();
-        assertEquals(Status.RUNNING, root.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
-        assertEquals(Status.SUCCESS, root.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
-        assertEquals(Status.FAILURE, root.tick(context));
-        context.removeInactive();
-        context.prepareCollectActive();
+        assertEquals(Status.RUNNING, context.prepare(root::tick));
+        assertEquals(Status.SUCCESS, context.prepare(root::tick));
+        assertEquals(Status.FAILURE, context.prepare(root::tick));
 
-        assertEquals(context.cached.size(), 0);
-        assertEquals(context.active.size(), 0);
+        assertEquals(0, context.cached.size());
+        assertEquals(0, context.active.size());
 
     }
 
@@ -267,6 +257,7 @@ public class NodeTest {
         AS_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
         AS_RN_OK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.SUCCESS));
         BR_OK_OK_NK = new Verifiable<>(new Rotational<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
+        BS_OK_OK_NK = new Verifiable<>(new Sequential<>(Verification.SUCCESS, Verification.SUCCESS, Verification.FAILURE));
         context = new Context();
     }
 }
