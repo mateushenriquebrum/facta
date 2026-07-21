@@ -72,13 +72,12 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
 
     record Action(Integer id, Supplier<Status> perform) implements Node {
 
-        public Action (Supplier<Status> perform) {
-            this(0, perform);
-        }
-
         @Override
         public Status tick(Context context) {
-            if (context.cached.get(id) != null) return context.cached.get(id);
+            if (context.cached.get(id) != null) {
+                context.active.add(id);
+                return context.cached.get(id);
+            }
             Status result;
             try {
                 result = perform.get();
@@ -89,6 +88,7 @@ public sealed interface Node permits Node.Action, Node.Belief, Node.Fallback, No
             }
             if (result != RUNNING) {
                 context.cached.put(id, result);
+                context.active.add(id);
             }
             return result;
         }
