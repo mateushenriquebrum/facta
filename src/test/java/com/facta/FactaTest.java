@@ -71,7 +71,7 @@ public class FactaTest {
                                 new Node.Action<>(0, lambda),
                                 new Node.Action<>(1, lambda),
                                 new Node.Action<>(2, lambda))),
-                        new Root.Context<>(board, new HashMap<>(), new HashSet<>())),
+                        new Clock.World<>(board, new HashMap<>(), new HashSet<>())),
                 Of(
                         Fallback(
                                 Action(lambda),

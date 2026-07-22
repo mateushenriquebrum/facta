@@ -25,7 +25,7 @@ public class NodeTest {
     Verifiable<Board, Status>               AS_RN_OK;
     Function<Board, Status>                 A_EXCEPTION = (board) -> {throw new RuntimeException();};
     Function<Board, Boolean>                B_EXCEPTION = (board) -> {throw new RuntimeException();};
-    Root.Context<Board>                     context;
+    Clock.World<Board> world;
 
     @BeforeEach
     public void setUp() {
@@ -185,8 +185,8 @@ public class NodeTest {
         assertEquals(Status.SUCCESS, tick(root));
         assertEquals(Status.FAILURE, tick(root));
 
-        assertEquals(0, context.cached().size());
-        assertEquals(0, context.active().size());
+        assertEquals(0, world.cached().size());
+        assertEquals(0, world.active().size());
 
     }
 
@@ -205,11 +205,11 @@ public class NodeTest {
         assertEquals(Status.SUCCESS, tick(root));
 
         assertEquals(6, AR_RN_OK.invoked);
-        assertEquals(3, context.cached().size());
+        assertEquals(3, world.cached().size());
     }
 
     public Status tick(Node<Board> node) {
-        return new Live<>(node, context).tick();
+        return new Live<>(node, world).tick();
     }
 
     static class Verifiable<B, T> implements Function<B, T> {
@@ -278,7 +278,7 @@ public class NodeTest {
         AS_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
         AS_RN_OK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.SUCCESS));
         AR_RN_OK = new Verifiable<>(new Rotational<>(Status.RUNNING, Status.SUCCESS));
-        context = new Root.Context<>(new Board(), new HashMap<>(), new HashSet<>());
+        world = new Clock.World<>(new Board(), new HashMap<>(), new HashSet<>());
     }
 
     public static class Board{}

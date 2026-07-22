@@ -48,8 +48,8 @@ public class Facta<B> {
         }
 
         public Live<B> With(B board) {
-            Root.Context<B> context = new Root.Context<>(board, new HashMap<>(), new HashSet<>());
-            return new Live<>(node, context);
+            Clock.World<B> world = new Clock.World<>(board, new HashMap<>(), new HashSet<>());
+            return new Live<>(node, world);
         }
     }
 

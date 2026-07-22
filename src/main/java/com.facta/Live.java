@@ -15,16 +15,16 @@ import java.util.Objects;
  */
 public class Live<B> {
     final Node<B> node;
-    final Root.Context<B> context;
+    final Clock.World<B> world;
 
-    public Live(Node<B> node, Root.Context<B> context) {
+    public Live(Node<B> node, Clock.World<B> world) {
         this.node = node;
-        this.context = context;
+        this.world = world;
     }
 
     public Node.Status tick() {
-        Node.Status status = Root.tick(node, context);
-        context.ticked();
+        Node.Status status = Clock.tick(node, world);
+        world.ticked();
         return status;
     }
 
@@ -32,7 +32,7 @@ public class Live<B> {
     public String toString() {
         return "Live{" +
                 "node=" + node +
-                ", context=" + context +
+                ", world=" + world +
                 '}';
     }
 
@@ -40,11 +40,11 @@ public class Live<B> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Live<?> live = (Live<?>) o;
-        return Objects.equals(node, live.node) && Objects.equals(context, live.context);
+        return Objects.equals(node, live.node) && Objects.equals(world, live.world);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(node, context);
+        return Objects.hash(node, world);
     }
 }
