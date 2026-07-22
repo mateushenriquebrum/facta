@@ -1,12 +1,17 @@
 package com.facta;
 
 import com.facta.Node.*;
+import com.sun.net.httpserver.Authenticator;
 import org.junit.jupiter.api.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
+import static com.facta.Node.Status.RUNNING;
+import static com.facta.Node.Status.SUCCESS;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -35,12 +40,12 @@ public class NodeTest {
     @Test
     public void shouldInvertBelief() {
         assertEquals(Status.FAILURE, tick(new Inverse<>(new Belief<>(BS_OK))));
-        assertEquals(Status.SUCCESS, tick(new Inverse<>(new Belief<>(BS_NK))));
+        assertEquals(SUCCESS, tick(new Inverse<>(new Belief<>(BS_NK))));
     }
 
     @Test
     public void shouldBeliefShortCircuitLikeLogicalAnd() {
-        assertEquals(Status.SUCCESS, tick(new Sequence<>(of(new Belief<>(BS_OK), new Belief<>(BS_OK)))));
+        assertEquals(SUCCESS, tick(new Sequence<>(of(new Belief<>(BS_OK), new Belief<>(BS_OK)))));
         assertEquals(2, BS_OK.invoked);
         assertEquals(0, BS_NK.invoked);
         reset();
@@ -63,17 +68,17 @@ public class NodeTest {
 
     @Test
     public void shouldBeliefShortCircuitLikeLogicalOr() {
-        assertEquals(Status.SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_OK), new Belief<>(BS_OK)))));
+        assertEquals(SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_OK), new Belief<>(BS_OK)))));
         assertEquals(1, BS_OK.invoked);
         assertEquals(0, BS_NK.invoked);
         reset();
 
-        assertEquals(Status.SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_OK), new Belief<>(BS_NK)))));
+        assertEquals(SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_OK), new Belief<>(BS_NK)))));
         assertEquals(1, BS_OK.invoked);
         assertEquals(0, BS_NK.invoked);
         reset();
 
-        assertEquals(Status.SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_NK), new Belief<>(BS_OK)))));
+        assertEquals(SUCCESS, tick(new Fallback<>(of(new Belief<>(BS_NK), new Belief<>(BS_OK)))));
         assertEquals(1, BS_OK.invoked);
         assertEquals(1, BS_NK.invoked);
         reset();
@@ -86,7 +91,7 @@ public class NodeTest {
 
     @Test
     void shouldActionShortCircuitLikeLogicalAnd() {
-        assertEquals(Status.SUCCESS, tick(new Sequence<>(of(new Action<>(0, AS_OK), new Action<>(1, AS_OK)))));
+        assertEquals(SUCCESS, tick(new Sequence<>(of(new Action<>(0, AS_OK), new Action<>(1, AS_OK)))));
         assertEquals(2, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
@@ -104,37 +109,37 @@ public class NodeTest {
 
     @Test
     void shouldActionShortCircuitLikeLogicalOr() {
-        assertEquals(Status.RUNNING, tick(new Sequence<>(of(new Action<>(0, AS_RN), new Action<>(1, AS_OK)))));
+        assertEquals(RUNNING, tick(new Sequence<>(of(new Action<>(0, AS_RN), new Action<>(1, AS_OK)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
 
-        assertEquals(Status.RUNNING, tick(new Sequence<>(of(new Action<>(2, AS_RN), new Action<>(3, AS_NK)))));
+        assertEquals(RUNNING, tick(new Sequence<>(of(new Action<>(2, AS_RN), new Action<>(3, AS_NK)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
 
-        assertEquals(Status.RUNNING, tick(new Sequence<>(of(new Action<>(4, AS_RN), new Action<>(5, AS_RN)))));
+        assertEquals(RUNNING, tick(new Sequence<>(of(new Action<>(4, AS_RN), new Action<>(5, AS_RN)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
 
-        assertEquals(Status.RUNNING, tick(new Fallback<>(of(new Action<>(6, AS_RN), new Action<>(7, AS_OK)))));
+        assertEquals(RUNNING, tick(new Fallback<>(of(new Action<>(6, AS_RN), new Action<>(7, AS_OK)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
 
-        assertEquals(Status.RUNNING, tick(new Fallback<>(of(new Action<>(8, AS_RN), new Action<>(9, AS_NK)))));
+        assertEquals(RUNNING, tick(new Fallback<>(of(new Action<>(8, AS_RN), new Action<>(9, AS_NK)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
         reset();
 
-        assertEquals(Status.RUNNING, tick(new Fallback<>(of(new Action<>(10, AS_RN), new Action<>(11, AS_RN)))));
+        assertEquals(RUNNING, tick(new Fallback<>(of(new Action<>(10, AS_RN), new Action<>(11, AS_RN)))));
         assertEquals(1, AS_RN.invoked);
         assertEquals(0, AS_OK.invoked);
         assertEquals(0, AS_NK.invoked);
@@ -150,14 +155,14 @@ public class NodeTest {
     @Test
     void shouldShortCircuitWhenFindRunning() {
         Node<Board> root = new Fallback<>(of(new Action<>(0, AS_RN_NK)));
-        assertEquals(Status.RUNNING, tick(root));
+        assertEquals(RUNNING, tick(root));
         assertEquals(Status.FAILURE, tick(root));
     }
 
     @Test
     void shouldCacheSequenceActionResult() {
         Node<Board> root = new Sequence<>(of(new Action<>(0, AS_RN_NK), new Action<>(1, AS_OK)));
-        assertEquals(Status.RUNNING, tick(root));
+        assertEquals(RUNNING, tick(root));
         assertEquals(Status.FAILURE, tick(root));
         assertEquals(Status.FAILURE, tick(root));
         assertEquals(Status.FAILURE, tick(root));
@@ -169,9 +174,9 @@ public class NodeTest {
     @Test
     void shouldCacheFallbackActionResult() {
         Node<Board> root = new Fallback<>(of(new Action<>(0, AS_RN_NK), new Action<>(1, AS_OK)));
-        assertEquals(Status.RUNNING, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
+        assertEquals(RUNNING, tick(root));
+        assertEquals(SUCCESS, tick(root));
+        assertEquals(SUCCESS, tick(root));
 
         Assertions.assertEquals(2, AS_RN_NK.invoked);
         Assertions.assertEquals(1, AS_OK.invoked);
@@ -181,13 +186,12 @@ public class NodeTest {
     void shouldRemoveCacheWhenActionIsUnreachable() {
         Node<Board> root = new Sequence<>(of(new Belief<>(BS_OK_OK_NK), new Action<>(0, AS_RN_OK)));
 
-        assertEquals(Status.RUNNING, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
+        assertEquals(RUNNING, tick(root));
+        assertEquals(SUCCESS, tick(root));
         assertEquals(Status.FAILURE, tick(root));
 
         assertEquals(0, world.cached().size());
         assertEquals(0, world.active().size());
-
     }
 
     @Test
@@ -197,15 +201,38 @@ public class NodeTest {
                 new Action<>(0, AR_RN_OK),
                 new Action<>(1, AR_RN_OK),
                 new Action<>(2, AR_RN_OK)));
-        assertEquals(Status.RUNNING, tick(root));
-        assertEquals(Status.RUNNING, tick(root));
-        assertEquals(Status.RUNNING, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
-        assertEquals(Status.SUCCESS, tick(root));
+        assertEquals(RUNNING, tick(root));
+        assertEquals(RUNNING, tick(root));
+        assertEquals(RUNNING, tick(root));
+        assertEquals(SUCCESS, tick(root));
+        assertEquals(SUCCESS, tick(root));
+        assertEquals(SUCCESS, tick(root));
 
         assertEquals(6, AR_RN_OK.invoked);
         assertEquals(3, world.cached().size());
+    }
+
+    @Test
+    void shouldMakeSandboxAction() throws InterruptedException {
+        Board board = new Board();
+        try (Sandbox<Board> sandbox = new Sandbox<>(board, (b) -> {
+            try {
+                board.x = 100;
+                Thread.sleep(10);
+                board.x = 200;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return Boolean.TRUE;
+        })) {
+            Assertions.assertEquals(RUNNING, sandbox.status());
+            Assertions.assertEquals(100, board.x);
+            Thread.sleep(5);
+            Assertions.assertEquals(RUNNING, sandbox.status());
+            Thread.sleep(6);
+            Assertions.assertEquals(SUCCESS, sandbox.status());
+            Assertions.assertEquals(200, board.x);
+        };
     }
 
     public Status tick(Node<Board> node) {
@@ -271,15 +298,18 @@ public class NodeTest {
         BS_OK_OK_NK = new Verifiable<>(new Sequential<>(Boolean.TRUE, Boolean.TRUE, Boolean.FALSE));
         BS_OK = new Verifiable<>(new Sequential<>(Boolean.TRUE));
         BS_NK = new Verifiable<>(new Sequential<>(Boolean.FALSE));
-        AS_OK = new Verifiable<>(new Sequential<>(Status.SUCCESS));
+        AS_OK = new Verifiable<>(new Sequential<>(SUCCESS));
         AS_NK = new Verifiable<>(new Sequential<>(Status.FAILURE));
-        AS_RN = new Verifiable<>(new Sequential<>(Status.RUNNING));
-        AS_RN_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE));
-        AS_RN_NK_NK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.FAILURE, Status.FAILURE));
-        AS_RN_OK = new Verifiable<>(new Sequential<>(Status.RUNNING, Status.SUCCESS));
-        AR_RN_OK = new Verifiable<>(new Rotational<>(Status.RUNNING, Status.SUCCESS));
+        AS_RN = new Verifiable<>(new Sequential<>(RUNNING));
+        AS_RN_NK = new Verifiable<>(new Sequential<>(RUNNING, Status.FAILURE));
+        AS_RN_NK_NK = new Verifiable<>(new Sequential<>(RUNNING, Status.FAILURE, Status.FAILURE));
+        AS_RN_OK = new Verifiable<>(new Sequential<>(RUNNING, SUCCESS));
+        AR_RN_OK = new Verifiable<>(new Rotational<>(RUNNING, SUCCESS));
         world = new Clock.World<>(new Board(), new HashMap<>(), new HashSet<>());
     }
 
-    public static class Board{}
+    public static class Board{
+        int x = 0;
+        int y = 0;
+    }
 }
