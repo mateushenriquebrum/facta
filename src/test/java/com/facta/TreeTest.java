@@ -93,10 +93,9 @@ public class TreeTest {
                 1, FAILURE,
                 2, FAILURE
         );
-        Node root = new Sequence(0,
+        Node root = new Fallback(0,
                 new Action(1),
-                new Action(2),
-                new Belief(3)
+                new Action(2)
         );
         Ticked tree = tick(root, new State(states));
         assertEquals(FAILURE, tree.last().state());
