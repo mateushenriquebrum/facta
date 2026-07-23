@@ -1,18 +1,18 @@
-package com.tree;
+package com.facta;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.tree.Status.*;
+import static com.facta.Status.*;
 
 public class World<B> {
     private final B board;
     private final Map<Integer, Function<B, Boolean>> belief;
     private final Map<Integer, Function<B, Boolean>> action;
     private final Node root;
-    private final Cache cache;
+    private final State state;
 
     public World(
             B board,
@@ -23,37 +23,37 @@ public class World<B> {
         this.belief = belief;
         this.action = action;
         this.root = root;
-        this.cache = new Cache(new HashMap<>());
+        this.state = new State(new HashMap<>());
     }
 
     public void loop() {
         int count = 9;
         while (count-- > 0) {
-            Tree.Ticked ticked = Tree.tick(root, cache);
+            Tree.Ticked ticked = Tree.tick(root, state);
 
             ticked
-                    .statuses()
+                    .states()
                     .stream()
                     .filter(tk -> RUNNING.equals(tk.state()))
                     .findFirst()
                     .ifPresent(tk -> {
-                        cache.cached().put(tk.id(), SUCCESS);
+                        state.state().put(tk.id(), SUCCESS);
                     });
 
             ticked
-                    .statuses()
+                    .states()
                     .stream()
                     .filter(tk -> List.of(BELIEF, ACTION).contains(tk.state()))
                     .findFirst()
                     .ifPresent(tk -> {
                         if (tk.state() == BELIEF) {
                             if (belief.get(tk.id()).apply(this.board)){
-                                cache.cached().put(tk.id(), SUCCESS);
+                                state.state().put(tk.id(), SUCCESS);
                             } else {
-                                cache.cached().put(tk.id(), FAILURE);
+                                state.state().put(tk.id(), FAILURE);
                             }
                         } else {
-                            cache.cached().put(tk.id(), RUNNING);
+                            state.state().put(tk.id(), RUNNING);
                         }
                     });
 
