@@ -17,6 +17,7 @@ public class World<B> {
     private final B board;
     private final Map<Integer, Function<B, Boolean>> belief;
     private final Map<Integer, Function<B, Boolean>> action;
+    private Sandbox<B> sandbox = null;
     private final Node root;
     private final State state;
 
@@ -43,9 +44,11 @@ public class World<B> {
             var result = safelyDoBelief(ticked);
             this.state.state().put(last.id(), result);
         } else if (last.state() == ACTION) {
-            //sandbox start
+            var result = safelyDoAction(ticked);
+            this.state.state().put(last.id(), result);
         } else if (last.state() == RUNNING) {
-            //sandbox status
+            var result = sandbox.status();
+            this.state.state().put(last.id(), result);
         }
         return ticked;
     }
@@ -56,6 +59,12 @@ public class World<B> {
         } catch (Exception e) {
             return FAILURE;
         }
+    }
+
+    private Status safelyDoAction(Ticked ticked) {
+        Function<B, Boolean> run =  action.get(ticked.last().id());
+        sandbox.spin(run);
+        return sandbox.status();
     }
 
     public Ticked run(Integer times) {
