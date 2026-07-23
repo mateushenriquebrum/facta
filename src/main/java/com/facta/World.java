@@ -1,11 +1,15 @@
 package com.facta;
 
+import com.facta.Tree.Ticked;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static com.facta.Status.*;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Unsafe class that deals with States and IO.
@@ -23,6 +27,10 @@ public class World<B> {
             Map<Integer, Function<B, Boolean>> belief,
             Map<Integer, Function<B, Boolean>> action,
             Node root) {
+        requireNonNull(board);
+        requireNonNull(belief);
+        requireNonNull(action);
+        requireNonNull(root);
         this.board = board;
         this.belief = belief;
         this.action = action;
@@ -30,10 +38,23 @@ public class World<B> {
         this.state = new State(new HashMap<>());
     }
 
+    public Ticked run(Integer times) {
+        int counter = 0;
+        Ticked ticked = null;
+        while (counter++ < times) {
+            ticked = Tree.tick(this.root, this.state);
+            if (ticked.last().state() == BELIEF) {
+                var result = belief.get(ticked.last().id()).apply(this.board) ? SUCCESS :FAILURE;
+                this.state.state().put(ticked.last().id(), result);
+            }
+        }
+        return ticked;
+    }
+
     public void loop() {
         int count = 9;
         while (count-- > 0) {
-            Tree.Ticked ticked = Tree.tick(root, state);
+            Ticked ticked = Tree.tick(root, state);
 
             ticked
                     .states()

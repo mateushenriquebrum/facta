@@ -7,6 +7,7 @@ import com.facta.Node.Sequence;
 import com.facta.Tree.Ticked;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.facta.Status.*;
@@ -125,5 +126,28 @@ public class TreeTest {
         );
         Ticked tree = tick(root, new State(states));
         assertEquals(BELIEF, tree.last().state());
+    }
+
+    @Test
+    public void shouldReturnAllLeavesStatesWithIds() {
+        Map<Integer, Status> states = of(
+                1, SUCCESS,
+                2, SUCCESS,
+                3, SUCCESS,
+                4, RUNNING
+        );
+        Node root = new Sequence(0,
+                new Belief(1),
+                new Belief(2),
+                new Action(3),
+                new Action(4)
+        );
+        Ticked tree = tick(root, new State(states));
+        assertEquals(List.of(
+                new StateOf(SUCCESS, 1),
+                new StateOf(SUCCESS, 2),
+                new StateOf(SUCCESS, 3),
+                new StateOf(RUNNING, 4)
+        ),tree.states());
     }
 }
