@@ -213,9 +213,18 @@ public class NodeTest {
     }
 
     @Test
+    void shouldActionUseSandbox() {
+        Board board = new Board();
+        Node<Board> root = new Sequence<>(
+                of(
+                        new Action<>(0, (bb) -> { return SUCCESS;})));
+        assertEquals(SUCCESS, tick(root));
+    }
+
+    @Test
     void shouldMakeSandboxAction() throws InterruptedException {
         Board board = new Board();
-        try (Sandbox<Board> sandbox = new Sandbox<>(board, (b) -> {
+        try (Sandbox<Board> sandbox = new Sandbox<>((b) -> {
             try {
                 board.x = 100;
                 Thread.sleep(10);
@@ -224,7 +233,7 @@ public class NodeTest {
                 throw new RuntimeException(e);
             }
             return Boolean.TRUE;
-        })) {
+        }, board)) {
             Assertions.assertEquals(RUNNING, sandbox.status());
             Assertions.assertEquals(100, board.x);
             Thread.sleep(5);
