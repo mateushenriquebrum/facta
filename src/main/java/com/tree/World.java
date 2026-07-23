@@ -8,15 +8,18 @@ import java.util.function.Function;
 import static com.tree.Status.*;
 
 public class World<B> {
+    private final B board;
     private final Map<Integer, Function<B, Boolean>> belief;
     private final Map<Integer, Function<B, Boolean>> action;
     private final Node root;
     private final Cache cache;
 
     public World(
+            B board,
             Map<Integer, Function<B, Boolean>> belief,
             Map<Integer, Function<B, Boolean>> action,
             Node root) {
+        this.board = board;
         this.belief = belief;
         this.action = action;
         this.root = root;
@@ -44,7 +47,11 @@ public class World<B> {
                     .findFirst()
                     .ifPresent(tk -> {
                         if (tk.state() == BELIEF) {
-                            cache.cached().put(tk.id(), SUCCESS);
+                            if (belief.get(tk.id()).apply(this.board)){
+                                cache.cached().put(tk.id(), SUCCESS);
+                            } else {
+                                cache.cached().put(tk.id(), FAILURE);
+                            }
                         } else {
                             cache.cached().put(tk.id(), RUNNING);
                         }
