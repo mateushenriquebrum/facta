@@ -29,22 +29,22 @@ public class WorldTest {
         World<?> world = new World<>(board, believes, actions, root);
 
         assertEquals(new Ticked(List.of(
-                new StateOf(BELIEF, 1)
+                new StateOf(1, BELIEF)
         )), world.run(1));
 
         assertEquals(new Ticked(List.of(
-                new StateOf(SUCCESS, 1),
-                new StateOf(BELIEF, 2)
+                new StateOf(1, SUCCESS),
+                new StateOf(2, BELIEF)
         )), world.run(1));
 
         assertEquals(new Ticked(List.of(
-                new StateOf(SUCCESS, 1),
-                new StateOf(FAILURE, 2)
+                new StateOf(1, SUCCESS),
+                new StateOf(2, FAILURE)
         )), world.run(1));
 
         assertEquals(new Ticked(List.of(
-                new StateOf(SUCCESS, 1),
-                new StateOf(FAILURE, 2)
+                new StateOf(1, SUCCESS),
+                new StateOf(2, FAILURE)
         )), world.run(1));
     }
 

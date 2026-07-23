@@ -38,49 +38,34 @@ public class World<B> {
         this.state = new State(new HashMap<>());
     }
 
-    public Ticked run(Integer times) {
-        int counter = 0;
-        Ticked ticked = null;
-        while (counter++ < times) {
-            ticked = Tree.tick(this.root, this.state);
-            if (ticked.last().state() == BELIEF) {
-                var result = belief.get(ticked.last().id()).apply(this.board) ? SUCCESS :FAILURE;
-                this.state.state().put(ticked.last().id(), result);
-            }
+    public Ticked once() {
+        Ticked ticked = Tree.tick(this.root, this.state);
+        StateOf last = ticked.last();
+        if (last.state() == BELIEF) {
+            var result = safelyDoBelief(ticked);
+            this.state.state().put(last.id(), result);
+        } else if (last.state() == ACTION) {
+            //sandbox start
+        } else if (last.state() == RUNNING) {
+            //sandbox status
         }
         return ticked;
     }
 
-    public void loop() {
-        int count = 9;
-        while (count-- > 0) {
-            Ticked ticked = Tree.tick(root, state);
-
-            ticked
-                    .states()
-                    .stream()
-                    .filter(tk -> RUNNING.equals(tk.state()))
-                    .findFirst()
-                    .ifPresent(tk -> state.state().put(tk.id(), SUCCESS));
-
-            ticked
-                    .states()
-                    .stream()
-                    .filter(tk -> List.of(BELIEF, ACTION).contains(tk.state()))
-                    .findFirst()
-                    .ifPresent(tk -> {
-                        if (tk.state() == BELIEF) {
-                            if (belief.get(tk.id()).apply(this.board)){
-                                state.state().put(tk.id(), SUCCESS);
-                            } else {
-                                state.state().put(tk.id(), FAILURE);
-                            }
-                        } else {
-                            state.state().put(tk.id(), RUNNING);
-                        }
-                    });
-
-            System.out.println(ticked);
+    private Status safelyDoBelief(Ticked ticked) {
+        try {
+            return belief.get(ticked.last().id()).apply(this.board) ? SUCCESS : FAILURE;
+        } catch (Exception e) {
+            return FAILURE;
         }
+    }
+
+    public Ticked run(Integer times) {
+        int counter = 0;
+        Ticked ticked = null;
+        while (counter++ < times) {
+            ticked = once();
+        }
+        return ticked;
     }
 }

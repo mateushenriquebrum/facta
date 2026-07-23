@@ -144,10 +144,10 @@ public class TreeTest {
         );
         Ticked tree = tick(root, new State(states));
         assertEquals(List.of(
-                new StateOf(SUCCESS, 1),
-                new StateOf(SUCCESS, 2),
-                new StateOf(SUCCESS, 3),
-                new StateOf(RUNNING, 4)
+                new StateOf(1, SUCCESS),
+                new StateOf(2, SUCCESS),
+                new StateOf(3, SUCCESS),
+                new StateOf(4, RUNNING)
         ),tree.states());
     }
 }

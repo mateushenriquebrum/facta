@@ -17,11 +17,11 @@ public class Tree {
         return switch (node) {
             case Node.Action action ->
                     new Ticked(List.of(
-                            new StateOf(cache.state().getOrDefault(action.id(), ACTION), action.id())));
+                            new StateOf(action.id(), cache.state().getOrDefault(action.id(), ACTION))));
 
             case Node.Belief belief ->
                     new Ticked(List.of(
-                            new StateOf(cache.state().getOrDefault(belief.id(), BELIEF), belief.id())));
+                            new StateOf(belief.id(), cache.state().getOrDefault(belief.id(), BELIEF))));
 
             case Node.Sequence sequence -> {
                 var statuses = new ArrayList<StateOf>();
@@ -37,7 +37,7 @@ public class Tree {
                     }
                 }
 
-                statuses.add(new StateOf(SUCCESS, sequence.id()));
+                statuses.add(new StateOf(sequence.id(), SUCCESS));
                 yield new Ticked(List.copyOf(statuses));
             }
 
@@ -55,7 +55,7 @@ public class Tree {
                     }
                 }
 
-                statuses.add(new StateOf(FAILURE, fallback.id()));
+                statuses.add(new StateOf(fallback.id(), FAILURE));
                 yield new Ticked(List.copyOf(statuses));
             }
         };

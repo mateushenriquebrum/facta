@@ -1,3 +1,3 @@
 package com.facta;
 
-public record StateOf(Status state, Integer id) { }
+public record StateOf(Integer id, Status state) { }
