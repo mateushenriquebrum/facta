@@ -33,7 +33,6 @@ public class Tree {
                     var state = tick.last().state();
 
                     if (state != SUCCESS) {
-                        statuses.add(new StateOf(state, sequence.id()));
                         yield new Ticked(List.copyOf(statuses));
                     }
                 }
@@ -52,7 +51,6 @@ public class Tree {
                     var state = tick.last().state();
 
                     if (state != FAILURE) {
-                        statuses.add(new StateOf(state, fallback.id()));
                         yield new Ticked(List.copyOf(statuses));
                     }
                 }
