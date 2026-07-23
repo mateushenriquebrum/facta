@@ -1,4 +1,4 @@
-package com.tree;
+package com.facta;
 
 public sealed interface Node permits Node.Action, Node.Sequence, Node.Fallback, Node.Belief {
     Integer id();
