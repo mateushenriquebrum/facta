@@ -3,9 +3,7 @@ package com.facta;
 import com.facta.Tree.Ticked;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static com.facta.Status.*;
