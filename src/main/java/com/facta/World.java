@@ -7,6 +7,10 @@ import java.util.function.Function;
 
 import static com.facta.Status.*;
 
+/**
+ * Unsafe class that deals with States and IO.
+ * @param <B>
+ */
 public class World<B> {
     private final B board;
     private final Map<Integer, Function<B, Boolean>> belief;
@@ -36,9 +40,7 @@ public class World<B> {
                     .stream()
                     .filter(tk -> RUNNING.equals(tk.state()))
                     .findFirst()
-                    .ifPresent(tk -> {
-                        state.state().put(tk.id(), SUCCESS);
-                    });
+                    .ifPresent(tk -> state.state().put(tk.id(), SUCCESS));
 
             ticked
                     .states()
