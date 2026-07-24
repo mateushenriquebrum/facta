@@ -18,7 +18,7 @@ public class World<B> {
     private final B board;
     private final Map<Integer, Function<B, Boolean>> belief;
     private final Map<Integer, Function<B, Boolean>> action;
-    private Sandbox<B> sandbox = null;
+    private final Sandbox<B> sandbox;
     private final Node root;
     private final State state;
 
@@ -26,7 +26,8 @@ public class World<B> {
             B board,
             Map<Integer, Function<B, Boolean>> belief,
             Map<Integer, Function<B, Boolean>> action,
-            Node root) {
+            Node root,
+            Sandbox<B> sandbox) {
         requireNonNull(board);
         requireNonNull(belief);
         requireNonNull(action);
@@ -35,6 +36,7 @@ public class World<B> {
         this.belief = belief;
         this.action = action;
         this.root = root;
+        this.sandbox = sandbox;
         this.state = new State(new HashMap<>());
     }
 

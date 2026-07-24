@@ -26,7 +26,7 @@ public class WorldTest {
                 new Belief(2),
                 new Belief(3));
 
-        World<?> world = new World<>(board, believes, actions, root);
+        World<?> world = new World<>(board, believes, actions, root, null);
 
         assertEquals(new Ticked(List.of(
                 new StateOf(1, BELIEF)
@@ -59,7 +59,7 @@ public class WorldTest {
         Node root = new Sequence(0,
                 new Belief(1));
 
-        World<?> world = new World<>(board, believes, actions, root);
+        World<?> world = new World<>(board, believes, actions, root, null);
 
         assertEquals(new Ticked(List.of(
                 new StateOf(1, FAILURE)
