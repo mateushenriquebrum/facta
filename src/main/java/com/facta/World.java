@@ -4,6 +4,7 @@ import com.facta.Tree.Ticked;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static com.facta.Status.*;
@@ -40,29 +41,29 @@ public class World<B> {
     public Ticked once() {
         Ticked ticked = Tree.tick(this.root, this.state);
         StateOf last = ticked.last();
-        if (last.state() == BELIEF) {
-            var result = safelyDoBelief(ticked);
-            this.state.state().put(last.id(), result);
-        } else if (last.state() == ACTION) {
-            var result = safelyDoAction(ticked);
-            this.state.state().put(last.id(), result);
-        } else if (last.state() == RUNNING) {
-            var result = sandbox.status();
-            this.state.state().put(last.id(), result);
-        }
+        Status status = switch (last.state()) {
+            case BELIEF -> safelyDoBelief(ticked);
+            case ACTION -> safelyDoAction(ticked);
+            case RUNNING -> sandbox.status();
+            default -> last.state();
+        };
+        this.state.state().put(last.id(), status);
         return ticked;
     }
 
     private Status safelyDoBelief(Ticked ticked) {
         try {
-            return belief.get(ticked.last().id()).apply(this.board) ? SUCCESS : FAILURE;
+            Function<B, Boolean> run = belief.get(ticked.last().id());
+            requireNonNull(run, "A function is required at this stage");
+            return run.apply(this.board) ? SUCCESS : FAILURE;
         } catch (Exception e) {
             return FAILURE;
         }
     }
 
     private Status safelyDoAction(Ticked ticked) {
-        Function<B, Boolean> run =  action.get(ticked.last().id());
+        Function<B, Boolean> run = action.get(ticked.last().id());
+        requireNonNull(run, "A function is required at this stage");
         sandbox.spin(run);
         return sandbox.status();
     }
