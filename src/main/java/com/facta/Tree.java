@@ -37,7 +37,6 @@ public class Tree {
                     }
                 }
 
-                statuses.add(new StateOf(sequence.id(), SUCCESS));
                 yield new Ticked(List.copyOf(statuses));
             }
 
@@ -55,7 +54,6 @@ public class Tree {
                     }
                 }
 
-                statuses.add(new StateOf(fallback.id(), FAILURE));
                 yield new Ticked(List.copyOf(statuses));
             }
         };

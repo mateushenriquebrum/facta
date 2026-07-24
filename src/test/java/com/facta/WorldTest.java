@@ -1,5 +1,6 @@
 package com.facta;
 
+import com.facta.Node.Action;
 import com.facta.Node.Belief;
 import com.facta.Node.Sequence;
 import com.facta.Tree.Ticked;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static com.facta.Status.*;
+import static java.lang.Boolean.TRUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WorldTest {
@@ -66,6 +68,26 @@ public class WorldTest {
         )), world.run(2));
     }
 
-    static class DummyBoard {}
+    @Test
+    public void shouldUseSandboxAndSussed() {
+        DummyBoard board = new DummyBoard();
+        Map<Integer, Function<DummyBoard, Boolean>> believes = Map.of();
+        Map<Integer, Function<DummyBoard, Boolean>> actions = Map.of(
+                1, (d) -> TRUE
+        );
+        Node root = new Sequence(0, new Action(1));
 
+        World<?> world = new World<>(board, believes, actions, root, new LightSandBox<>(board));
+
+        assertEquals(new Ticked(List.of(
+                new StateOf(1, ACTION)
+        )), world.once());
+        assertEquals(new Ticked(List.of(
+                new StateOf(1, RUNNING)
+        )), world.once());
+        assertEquals(new Ticked(List.of(
+                new StateOf(1, SUCCESS)
+        )), world.once());
+    }
+    static class DummyBoard {}
 }
